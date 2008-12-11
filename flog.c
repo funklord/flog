@@ -1,4 +1,4 @@
-/*! 
+/*!
 	@file flog.c
 	@brief Flog logging library
 	@author Nabeel Sowan (nabeel.sowan@vibes.se)

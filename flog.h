@@ -1,10 +1,13 @@
-/*! 
+/*!
 	@file flog.h
 	@brief Flog logging library
 	@author Nabeel Sowan (nabeel.sowan@vibes.se)
 	
 	Useful as the main logger of a program
 */
+
+#ifndef FLOG_H
+#define FLOG_H
 
 //! Nothing
 #define FLOG_NOTHING			0x00
@@ -114,4 +117,6 @@ void flog_test(FLOG_T *p);
 
 #ifdef FLOG_TIMESTAMP
 const char * get_timestamp(void);
+#endif
+
 #endif
