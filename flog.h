@@ -1,8 +1,9 @@
 /*! 
 	@file flog.h
-	@brief Flog library
+	@brief Flog logging library
+	@author Nabeel Sowan (nabeel.sowan@vibes.se)
 	
-	Useful as the main logger of a program 
+	Useful as the main logger of a program
 */
 
 //! Nothing

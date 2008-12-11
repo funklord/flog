@@ -1,4 +1,10 @@
-//! @file flog.c
+/*! 
+	@file flog.c
+	@brief Flog logging library
+	@author Nabeel Sowan (nabeel.sowan@vibes.se)
+	
+	Useful as the main logger of a program
+*/
 
 #include "flog.h"
 #define _GNU_SOURCE
