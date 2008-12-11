@@ -11,10 +11,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-
 #include <stdarg.h>
-#include <time.h>
-#include "libintl.h"
+
+//#include <time.h>
 
 //! initialise a FLOG_MSG_T to defaults
 void init_flog_msg_t(FLOG_MSG_T *p)

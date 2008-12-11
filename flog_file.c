@@ -7,6 +7,7 @@
 */
 
 #include "flog_file.h"
+#include <stdlib.h>
 #include <stdio.h>
 
 int flog_output_file(const FLOG_MSG_T *p,void *data)
