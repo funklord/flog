@@ -53,73 +53,64 @@
 #define FLOG_SHOW_ALL									FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG
 #define FLOG_SHOW_FLOG_DEBUG					FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG | FLOG_FLOG_DEBUG
 
-//#define FLOG_DEBUGGING_ON
-
-#ifdef FLOG_DEBUGGING_ON
-#define flog_dprint(type, subsystem, text) flog_print (type, subsystem, text)
-#define flog_dprintf(type, subsystem, ...) flog_printf (type, subsystem, __VA_ARGS__)
+//! Macros to allow removal of messages from release builds
+#ifdef DEBUG
+#define flog_dprint(p, type, subsystem, text) flog_print (p, type, subsystem, text)
+#define flog_dprintf(p, type, subsystem, ...) flog_printf (p, type, subsystem, __VA_ARGS__)
 #else
-#define flog_dprint(type, subsystem, text) 0
-#define flog_dprintf(type, subsystem, ...) 0
+#define flog_dprint(p, type, subsystem, text) 0
+#define flog_dprintf(p, type, subsystem, ...) 0
 #endif
 
-//! Contains flog main settings
-struct struct_flog_opt
-{
-	//! @todo implement this
-	char subsystem_prepend[512]; //!< string to prepend to subsystem
-	
-	//! @todo implement this
-	int logbuffer_lines; //!< amount of log buffer lines
-	
-	int accepted_messages_stderr; //!< bitmask of which messages to write to stderr
-	
-	int accepted_messages_stdout; //!< bitmask of which messages to write to stdout
+typedef int FLOG_MSG_TYPE_T;
+#ifdef FLOG_TIMESTAMP
+typedef int FLOG_TIMESTAMP_T;
+#endif
 
-	//Logfile options
-	int accepted_messages_file; //!< bitmask of which messages to write to file
-	
-	char logfile[261]; //!< log filename
-	
-	//! @todo implement this
-	int buffered_write; //!< if set buffers writes in memory
-	
-	int write_error; //!< if set a write error has occured and no more writes will be done until unset
-} flog_opt;
+typedef struct {
+#ifdef FLOG_TIMESTAMP
+	FLOG_TIMESTAMP_T time;                  //!< timestamp
+#endif
+	FLOG_MSG_TYPE_T type;                   //!< type of message
+	char *subsystem;                        //!< subsystem which is outputting the msg
+	char *text;                              //!< message contents
+} FLOG_MSG_T;
 
-//! Initialise flog lib.
-/*!
-	must be called first.
-	@param log_name name of log, appended to messages
-	@param am_stderr accepted messages for stderr
-	@param am_stdout accepted messages for stdout
-	@param am_file accepted messages for file output
-	@param filename_log name of logfile
-	@return 0 = no errors occured
-*/
-int flog_init(const char *log_name,int am_stderr,int am_stdout,int am_file,const char *filename_log);
+struct flog_t {
+	char *name;                             //!< name of log
+	FLOG_MSG_TYPE_T accepted_msg_type;      //!< bitmask of which messages to accept
+	int (*output_func)(const FLOG_MSG_T *,void *); //!< function to output messages to
+	int output_error;                       //!< errors occurred on output
+	int output_stop_on_error;               //!< stop outputting messages on error
+	struct flog_t *error_log;               //!< error log for flog errors
+	FLOG_MSG_T **msg;                       //!< array of messages
+	int msg_amount;                         //!< amount of messages in array
+	int msg_max;                            //!< maximum amount of buffered messages
+	struct flog_t **sublog;                 //!< array of sublogs
+	int sublog_amount;                      //!< amount of sublogs in array
+};
 
-//! output an flog message
-/*!
-	@param type use one of the FLOG_* defines
-	@param subsystem which part of the program is outputing this message (use __func__ typically)
-	@param text message text
-	@return 0 = no errors occured
-*/
-int flog_print(int type,const char *subsystem,const char *text);
+typedef struct flog_t FLOG_T;
 
-//! formatted message output (calls flog_printf())
-/*!
-	@param type use one of the FLOG_* defines
-	@param subsystem which part of the program is outputing this message (use __func__ typically)
-	@param text_format formatted message text
-	@return 0 = no errors occured
-*/
-int flog_printf(int type,const char *subsystem,const char *text_format, ...);
+void init_flog_msg_t(FLOG_MSG_T *p);
+FLOG_MSG_T * create_flog_msg_t(FLOG_MSG_TYPE_T msg_type,const char *subsystem,const char *text);
+void destroy_flog_msg_t(FLOG_MSG_T *p);
 
-//! tests outputting all kinds of text messages
-void flog_test(void);
+void init_flog_t(FLOG_T *p);
+FLOG_T * create_flog_t(const char *name, FLOG_MSG_TYPE_T accepted_msg_type);
+void destroy_flog_t(FLOG_T *p);
 
+int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg);
+void flog_clear_msg_buffer(FLOG_T *p);
+int flog_append_sublog(FLOG_T *p,FLOG_T *sublog);
+
+int flog_print(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text);
+int flog_printf(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *textf, ...);
+
+char * flog_msg_t_to_str(const FLOG_MSG_T *p);
+char * flog_get_msg_type_str(FLOG_MSG_TYPE_T type);
+void flog_test(FLOG_T *p);
+
+#ifdef FLOG_TIMESTAMP
 const char * get_timestamp(void);
-
-const char * get_msg_type(int type);
+#endif
