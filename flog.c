@@ -69,7 +69,7 @@ void destroy_flog_msg_t(FLOG_MSG_T *p)
 void init_flog_t(FLOG_T *p)
 {
 	p->name=NULL;
-	p->accepted_msg_type=FLOG_SHOW_ALL;
+	p->accepted_msg_type=FLOG_ACCEPT_ALL;
 	p->output_func=NULL;
 	p->output_error=0;
 	p->output_stop_on_error=1;

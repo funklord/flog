@@ -11,10 +11,10 @@ int main(void)
 	printf("-[flog test start]-\n");
 	
 	//create logs
-	log_main = create_flog_t(__func__,FLOG_SHOW_ALL);
-	log_subfunc = create_flog_t("subfunc",FLOG_SHOW_ALL);
-	log_stdout = create_flog_t("stdout",FLOG_SHOW_ALL);
-	log_stderr = create_flog_t("stderr",FLOG_SHOW_ALL);
+	log_main = create_flog_t(__func__,FLOG_ACCEPT_ALL);
+	log_subfunc = create_flog_t("subfunc",FLOG_ACCEPT_ALL);
+	log_stdout = create_flog_t("stdout",FLOG_ACCEPT_ONLY_ERROR);
+	log_stderr = create_flog_t("stderr",FLOG_ACCEPT_ALL);
 	
 	//set output functions
 	log_stdout->output_func=flog_output_stdout;
@@ -26,7 +26,7 @@ int main(void)
 	flog_append_sublog(log_main,log_stderr);
 	
 	flog_print(log_subfunc,FLOG_ERROR,"print_test","testing...");
-	flog_printf(log_subfunc,FLOG_ERROR,"printf_test","testing... %d %d %d",1,2,3);
+	flog_printf(log_subfunc,FLOG_INFO,"printf_test","testing... %d %d %d",1,2,3);
 	
 	printf("-[flog test suite]-\n");
 	flog_test(log_main);

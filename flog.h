@@ -9,64 +9,119 @@
 #ifndef FLOG_H
 #define FLOG_H
 
+/* FLOG_MSG_TYPE_ENUM_API allows switching to an enum API for flog.
+What this means is that FLOG_MSG_TYPE_T will be defined as an int 
+(instead of unsigned char) In return, enums may yield stronger
+type checking and therefore easier debugging. */
+
+#ifdef FLOG_MSG_TYPE_ENUM_API
+
+typedef enum flog_msg_type {
+	FLOG_NONE        = 0X00,
+	FLOG_NOTHING     = FLOG_NONE,
+	
+	FLOG_CRIT        = 0X01,
+	FLOG_CRITICAL    = FLOG_CRIT,
+	
+	FLOG_ERR         = 0X02,
+	FLOG_ERROR       = FLOG_ERR,
+	
+	FLOG_WARN        = 0X04,
+	FLOG_WARNING     = FLOG_WARN,
+	FLOG_ALERT       = FLOG_WARN,
+	
+	FLOG_NOTE        = 0X08,
+	FLOG_NOTIFY      = FLOG_NOTE,
+	FLOG_IMP         = FLOG_NOTE,
+	FLOG_IMPORTANT   = FLOG_NOTE,
+	
+	FLOG_INFO        = 0X10,
+	FLOG_INFORMATION = FLOG_INFO,
+	FLOG_MSG         = FLOG_INFO,
+	FLOG_MESSAGE     = FLOG_INFO,
+	
+	FLOG_VINFO       = 0X20,
+	FLOG_VERBOSE     = FLOG_VINFO,
+	
+	FLOG_DEBUG       = 0X40,
+	
+	FLOG_FLOG_DEBUG  = 0X80,
+	
+	FLOG_ACCEPT_ONLY_CRITICAL     = FLOG_CRIT,
+	FLOG_ACCEPT_ONLY_ERROR        = FLOG_CRIT | FLOG_ERR,
+	FLOG_ACCEPT_ERROR_AND_WARNING = FLOG_CRIT | FLOG_ERR | FLOG_WARN,
+	FLOG_ACCEPT_IMPORTANT_NOTES   = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE,
+	FLOG_ACCEPT_INFO              = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO,
+	FLOG_ACCEPT_VERBOSE_INFO      = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO,
+	FLOG_ACCEPT_ALL               = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG,
+	FLOG_ACCEPT_FLOG_DEBUG        = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG | FLOG_FLOG_DEBUG
+} FLOG_MSG_TYPE_T;
+
+#else /* FLOG_MSG_TYPE_ENUM_API */
+
+typedef unsigned char FLOG_MSG_TYPE_T;
+
 //! Nothing
-#define FLOG_NOTHING			0x00
-#define FLOG_NONE					FLOG_NOTHING
+
+#define FLOG_NONE         0x00
+#define FLOG_NOTHING      FLOG_NONE
 
 //! Critical error
-#define FLOG_CRITICAL			0x01
-#define FLOG_CRIT					FLOG_CRITICAL
+#define FLOG_CRIT         0x01
+#define FLOG_CRITICAL     FLOG_CRIT
 
 //! Error
-#define FLOG_ERROR				0x02
-#define FLOG_ERR					FLOG_ERROR
+#define FLOG_ERR          0x02
+#define FLOG_ERROR        FLOG_ERR
 
 //! Warning
-#define FLOG_WARNING			0x04
-#define FLOG_WARN					FLOG_WARNING
-#define FLOG_ALERT				FLOG_WARNING
+#define FLOG_WARN         0x04
+#define FLOG_WARNING      FLOG_WARN
+#define FLOG_ALERT        FLOG_WARN
 
 //! Note
-#define FLOG_NOTE					0x08
-#define FLOG_NOTIFY				FLOG_NOTE
-#define FLOG_IMP					FLOG_NOTE
-#define FLOG_IMPORTANT		FLOG_NOTE
+#define FLOG_NOTE         0x08
+#define FLOG_NOTIFY       FLOG_NOTE
+#define FLOG_IMP          FLOG_NOTE
+#define FLOG_IMPORTANT    FLOG_NOTE
 
 //! Info
-#define FLOG_INFO					0x10
-#define FLOG_INFORMATION	FLOG_INFO
-#define FLOG_MSG					FLOG_INFO
-#define FLOG_MESSAGE			FLOG_INFO
+#define FLOG_INFO         0x10
+#define FLOG_INFORMATION  FLOG_INFO
+#define FLOG_MSG          FLOG_INFO
+#define FLOG_MESSAGE      FLOG_INFO
 
 //! Info in verbose mode
-#define FLOG_VERBOSE			0x20
-#define FLOG_VINFO				FLOG_VERBOSE
+#define FLOG_VINFO        0x20
+#define FLOG_VERBOSE      FLOG_VINFO
 
 //! Debug info
-#define FLOG_DEBUG				0x40
+#define FLOG_DEBUG        0x40
 
 //! Debug info for flog itself
-#define FLOG_FLOG_DEBUG		0x80
+#define FLOG_FLOG_DEBUG   0x80
 
 //! Bitmask to show only errors
-#define FLOG_SHOW_ONLY_ERRORS					FLOG_CRIT | FLOG_ERR
-#define FLOG_SHOW_ERRORS_AND_WARNINGS	FLOG_CRIT | FLOG_ERR | FLOG_WARN
-#define FLOG_SHOW_IMPORTANT_NOTES			FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE
-#define FLOG_SHOW_INFO								FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO
-#define FLOG_SHOW_VERBOSE_INFO				FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO
-#define FLOG_SHOW_ALL									FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG
-#define FLOG_SHOW_FLOG_DEBUG					FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG | FLOG_FLOG_DEBUG
+#define FLOG_ACCEPT_ONLY_CRITICAL     FLOG_CRIT
+#define FLOG_ACCEPT_ONLY_ERROR        FLOG_CRIT | FLOG_ERR
+#define FLOG_ACCEPT_ERROR_AND_WARNING FLOG_CRIT | FLOG_ERR | FLOG_WARN
+#define FLOG_ACCEPT_IMPORTANT_NOTE    FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE
+#define FLOG_ACCEPT_INFO              FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO
+#define FLOG_ACCEPT_VERBOSE_INFO      FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO
+#define FLOG_ACCEPT_ALL               FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG
+#define FLOG_ACCEPT_FLOG_DEBUG        FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG | FLOG_FLOG_DEBUG
+
+#endif /* FLOG_MSG_TYPE_ENUM_API */
 
 //! Macros to allow removal of messages from release builds
 #ifdef DEBUG
 #define flog_dprint(p, type, subsystem, text) flog_print (p, type, subsystem, text)
 #define flog_dprintf(p, type, subsystem, ...) flog_printf (p, type, subsystem, __VA_ARGS__)
 #else
-#define flog_dprint(p, type, subsystem, text) 0
-#define flog_dprintf(p, type, subsystem, ...) 0
+#define flog_dprint(p, type, subsystem, text)
+#define flog_dprintf(p, type, subsystem, ...)
 #endif
 
-typedef int FLOG_MSG_TYPE_T;
 #ifdef FLOG_TIMESTAMP
 typedef int FLOG_TIMESTAMP_T;
 #endif
