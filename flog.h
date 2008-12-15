@@ -139,6 +139,7 @@ struct flog_t {
 	char *name;                             //!< name of log
 	FLOG_MSG_TYPE_T accepted_msg_type;      //!< bitmask of which messages to accept
 	int (*output_func)(const FLOG_MSG_T *,void *); //!< function to output messages to
+	void *output_func_data;                 //!< data passed to output func
 	int output_error;                       //!< errors occurred on output
 	int output_stop_on_error;               //!< stop outputting messages on error
 	struct flog_t *error_log;               //!< error log for flog errors

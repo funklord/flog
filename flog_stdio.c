@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int flog_output_stdout(const FLOG_MSG_T *p,void *data)
+int flog_output_stdout(const FLOG_MSG_T *p,void *data __attribute__((__unused__)))
 {
 	char *str;
 	if((str=flog_msg_t_to_str(p))==NULL)
@@ -23,7 +23,7 @@ int flog_output_stdout(const FLOG_MSG_T *p,void *data)
 	return(0);
 }
 
-int flog_output_stderr(const FLOG_MSG_T *p,void *data)
+int flog_output_stderr(const FLOG_MSG_T *p,void *data __attribute__((__unused__)))
 {
 	char *str;
 	if((str=flog_msg_t_to_str(p))==NULL)

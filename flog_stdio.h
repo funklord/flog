@@ -11,7 +11,7 @@
 
 #include "flog.h"
 
-int flog_output_stdout(const FLOG_MSG_T *p,void *data);
-int flog_output_stderr(const FLOG_MSG_T *p,void *data);
+int flog_output_stdout(const FLOG_MSG_T *p,void *);
+int flog_output_stderr(const FLOG_MSG_T *p,void *);
 
 #endif

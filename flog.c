@@ -71,6 +71,7 @@ void init_flog_t(FLOG_T *p)
 	p->name=NULL;
 	p->accepted_msg_type=FLOG_ACCEPT_ALL;
 	p->output_func=NULL;
+	p->output_func_data=NULL;
 	p->output_error=0;
 	p->output_stop_on_error=1;
 	p->error_log=NULL;
@@ -161,7 +162,7 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 		//run output function
 		if(p->output_func != NULL) {
 			if(p->output_stop_on_error ? !p->output_error : 1) {
-				if((e=p->output_func(tmpmsg,NULL)))
+				if((e=p->output_func(tmpmsg,p->output_func_data)))
 					p->output_error=e;
 			}
 		}
