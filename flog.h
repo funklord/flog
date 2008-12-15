@@ -17,35 +17,35 @@ type checking and therefore easier debugging. */
 #ifdef FLOG_MSG_TYPE_ENUM_API
 
 typedef enum flog_msg_type {
-	FLOG_NONE        = 0X00,
+	FLOG_NONE        = 0x00,
 	FLOG_NOTHING     = FLOG_NONE,
 	
-	FLOG_CRIT        = 0X01,
+	FLOG_CRIT        = 0x01,
 	FLOG_CRITICAL    = FLOG_CRIT,
 	
-	FLOG_ERR         = 0X02,
+	FLOG_ERR         = 0x02,
 	FLOG_ERROR       = FLOG_ERR,
 	
-	FLOG_WARN        = 0X04,
+	FLOG_WARN        = 0x04,
 	FLOG_WARNING     = FLOG_WARN,
 	FLOG_ALERT       = FLOG_WARN,
 	
-	FLOG_NOTE        = 0X08,
+	FLOG_NOTE        = 0x08,
 	FLOG_NOTIFY      = FLOG_NOTE,
 	FLOG_IMP         = FLOG_NOTE,
 	FLOG_IMPORTANT   = FLOG_NOTE,
 	
-	FLOG_INFO        = 0X10,
+	FLOG_INFO        = 0x10,
 	FLOG_INFORMATION = FLOG_INFO,
 	FLOG_MSG         = FLOG_INFO,
 	FLOG_MESSAGE     = FLOG_INFO,
 	
-	FLOG_VINFO       = 0X20,
+	FLOG_VINFO       = 0x20,
 	FLOG_VERBOSE     = FLOG_VINFO,
 	
-	FLOG_DEBUG       = 0X40,
+	FLOG_DEBUG       = 0x40,
 	
-	FLOG_FLOG_DEBUG  = 0X80,
+	FLOG_FLOG_DEBUG  = 0x80,
 	
 	FLOG_ACCEPT_ONLY_CRITICAL     = FLOG_CRIT,
 	FLOG_ACCEPT_ONLY_ERROR        = FLOG_CRIT | FLOG_ERR,
