@@ -10,10 +10,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int flog_output_stdout(const FLOG_MSG_T *p,void *data __attribute__((__unused__)))
+int flog_output_stdout(FLOG_T *log __attribute__((__unused__)),const FLOG_MSG_T *msg)
 {
 	char *str;
-	if((str=flog_msg_t_to_str(p))==NULL)
+	if((str=flog_msg_t_to_str(msg))==NULL)
 		return(1);
 	if(fprintf(stdout,str)<0) {
 		free(str);
@@ -23,10 +23,10 @@ int flog_output_stdout(const FLOG_MSG_T *p,void *data __attribute__((__unused__)
 	return(0);
 }
 
-int flog_output_stderr(const FLOG_MSG_T *p,void *data __attribute__((__unused__)))
+int flog_output_stderr(FLOG_T *log __attribute__((__unused__)),const FLOG_MSG_T *msg)
 {
 	char *str;
-	if((str=flog_msg_t_to_str(p))==NULL)
+	if((str=flog_msg_t_to_str(msg))==NULL)
 		return(1);
 	if(fprintf(stderr,str)<0) {
 		free(str);

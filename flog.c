@@ -21,6 +21,11 @@ void init_flog_msg_t(FLOG_MSG_T *p)
 #ifdef FLOG_TIMESTAMP
 	p->time=0;
 #endif
+#ifdef FLOG_SRC_INFO
+	p->src_file=NULL;
+	p->src_line=-1;
+	p->src_func=NULL;
+#endif
 	p->type=FLOG_NONE;
 	p->subsystem=NULL;
 	p->text=NULL;
@@ -30,7 +35,11 @@ void init_flog_msg_t(FLOG_MSG_T *p)
 /*!
 	@return NULL = error
 */
+#ifdef FLOG_SRC_INFO
+FLOG_MSG_T * create_flog_msg_t(const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text)
+#else
 FLOG_MSG_T * create_flog_msg_t(FLOG_MSG_TYPE_T type,const char *subsystem,const char *text)
+#endif
 {
 	if(text==NULL)
 		return(NULL);
@@ -39,6 +48,21 @@ FLOG_MSG_T * create_flog_msg_t(FLOG_MSG_TYPE_T type,const char *subsystem,const 
 		init_flog_msg_t(p);
 #ifdef FLOG_TIMESTAMP
 		p->time=0; //TODO
+#endif
+#ifdef FLOG_SRC_INFO
+		if((src_file != NULL) && (strlen(src_file)>0)) {
+			if(asprintf(&p->src_file,src_file)==-1) {
+				destroy_flog_msg_t(p);
+				return(NULL);
+			}
+		}
+		p->src_line=src_line;
+		if((src_func != NULL) && (strlen(src_func)>0)) {
+			if(asprintf(&p->src_func,src_func)==-1) {
+				destroy_flog_msg_t(p);
+				return(NULL);
+			}
+		}
 #endif
 		p->type=type;
 		if((subsystem != NULL) && (strlen(subsystem)>0)) {
@@ -59,6 +83,10 @@ FLOG_MSG_T * create_flog_msg_t(FLOG_MSG_TYPE_T type,const char *subsystem,const 
 void destroy_flog_msg_t(FLOG_MSG_T *p)
 {
 	if(p!=NULL) {
+#ifdef FLOG_SRC_INFO
+		free(p->src_file);
+		free(p->src_func);
+#endif
 		free(p->subsystem);
 		free(p->text);
 		free(p);
@@ -130,7 +158,11 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 	
 	//create temporary msg to allow reformatting the message
 	FLOG_MSG_T *tmpmsg;
+#ifdef FLOG_SRC_INFO
+	if((tmpmsg=create_flog_msg_t(msg->src_file,msg->src_line,msg->src_func,msg->type,msg->subsystem,msg->text))==NULL)
+#else
 	if((tmpmsg=create_flog_msg_t(msg->type,msg->subsystem,msg->text))==NULL)
+#endif
 		return(1);
 	
 	//append name to subsystem
@@ -148,6 +180,7 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 	else if((p->name != NULL) && (tmpmsg->subsystem == NULL))
 		asprintf(&tmpmsg->subsystem,p->name);
 	
+	//compare if accepted message type
 	if(tmpmsg->type & p->accepted_msg_type) {
 		//add message to buffer	
 		if(p->msg_amount<p->msg_max) {
@@ -162,7 +195,7 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 		//run output function
 		if(p->output_func != NULL) {
 			if(p->output_stop_on_error ? !p->output_error : 1) {
-				if((e=p->output_func(tmpmsg,p->output_func_data)))
+				if((e=p->output_func(p,tmpmsg)))
 					p->output_error=e;
 			}
 		}
@@ -220,12 +253,20 @@ int flog_append_sublog(FLOG_T *p,FLOG_T *sublog)
 	@param text message text
 	@return 0 = success
 */
-int flog_print(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text)
+#ifdef FLOG_SRC_INFO
+int _flog_print(FLOG_T *p,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text)
+#else
+int _flog_print(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text)
+#endif
 {
 	if(p==NULL)
 		return(1);
 	FLOG_MSG_T *msg;
+#ifdef FLOG_SRC_INFO
+	if((msg=create_flog_msg_t(src_file,src_line,src_func,type,subsystem,text))==NULL)
+#else
 	if((msg=create_flog_msg_t(type,subsystem,text))==NULL)
+#endif
 		return(1);
 	if(flog_add_msg(p,msg)) {
 		destroy_flog_msg_t(msg);
@@ -242,7 +283,11 @@ int flog_print(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *
 	@param textf formatted message text
 	@return 0 = success
 */
-int flog_printf(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *textf, ...)
+#ifdef FLOG_SRC_INFO
+int _flog_printf(FLOG_T *p,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *textf, ...)
+#else
+int _flog_printf(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *textf, ...)
+#endif
 {
 	if(p==NULL)
 		return(1);
@@ -252,8 +297,12 @@ int flog_printf(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char 
 	if(vasprintf(&text,textf,ap)==-1)
 		return(1);
 	va_end(ap);
-	
-	if(flog_print(p,type,subsystem,text)) {
+
+#ifdef FLOG_SRC_INFO
+	if(_flog_print(p,src_file,src_line,src_func,type,subsystem,text)) {
+#else
+	if(_flog_print(p,type,subsystem,text)) {
+#endif
 		free(text);
 		return(1);
 	}
@@ -272,6 +321,16 @@ char * flog_msg_t_to_str(const FLOG_MSG_T *p)
 #ifdef FLOG_TIMESTAMP
 	//! @todo add timestamp support
 #else
+#ifdef FLOG_SRC_INFO
+	if((p->subsystem != NULL) && (typestr != NULL))
+		asprintf(&str,"%s:%d %s() [%s] %s%s\n",p->src_file,p->src_line,p->src_func,p->subsystem,typestr,p->text);
+	else if((p->subsystem != NULL) && (typestr == NULL))
+		asprintf(&str,"%s:%d %s() [%s] %s\n",p->src_file,p->src_line,p->src_func,p->subsystem,p->text);
+	else if((p->subsystem == NULL) && (typestr != NULL))
+		asprintf(&str,"%s:%d %s() %s%s\n",p->src_file,p->src_line,p->src_func,typestr,p->text);
+	else
+		asprintf(&str,"%s:%d %s() %s\n",p->src_file,p->src_line,p->src_func,p->text);
+#else
 	if((p->subsystem != NULL) && (typestr != NULL))
 		asprintf(&str,"[%s] %s%s\n",p->subsystem,typestr,p->text);
 	else if((p->subsystem != NULL) && (typestr == NULL))
@@ -281,6 +340,7 @@ char * flog_msg_t_to_str(const FLOG_MSG_T *p)
 	else
 		asprintf(&str,"%s\n",p->text);
 #endif
+#endif
 	free(typestr);
 	return(str);
 }
@@ -288,7 +348,7 @@ char * flog_msg_t_to_str(const FLOG_MSG_T *p)
 //! Return a string or NULL according to message type
 char * flog_get_msg_type_str(FLOG_MSG_TYPE_T type)
 {
-	int e;
+	int e=-1;
 	char *str=NULL;
 	switch(type)
 	{

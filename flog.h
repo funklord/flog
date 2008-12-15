@@ -113,6 +113,16 @@ typedef unsigned char FLOG_MSG_TYPE_T;
 
 #endif /* FLOG_MSG_TYPE_ENUM_API */
 
+//! Macros to insert source info into print strings
+#ifdef FLOG_SRC_INFO
+//Maybe it is better to use __func__ than __FUNCTION__ ?
+#define flog_print(p, type, subsystem, text) _flog_print (p, __FILE__,  __LINE__, __FUNCTION__, type, subsystem, text)
+#define flog_printf(p, type, subsystem, ...) _flog_printf (p, __FILE__,  __LINE__, __FUNCTION__, type, subsystem, __VA_ARGS__)
+#else
+#define flog_print(p, type, subsystem, text) _flog_print (p, type, subsystem, text)
+#define flog_printf(p, type, subsystem, ...) _flog_printf (p, type, subsystem, __VA_ARGS__)
+#endif
+
 //! Macros to allow removal of messages from release builds
 #ifdef DEBUG
 #define flog_dprint(p, type, subsystem, text) flog_print (p, type, subsystem, text)
@@ -130,15 +140,20 @@ typedef struct {
 #ifdef FLOG_TIMESTAMP
 	FLOG_TIMESTAMP_T time;                  //!< timestamp
 #endif
+#ifdef FLOG_SRC_INFO
+	char *src_file;                         //!< source file emitting message
+	int src_line;                           //!< source line number emitting message
+	char *src_func;                         //!< source function emitting message
+#endif
 	FLOG_MSG_TYPE_T type;                   //!< type of message
 	char *subsystem;                        //!< subsystem which is outputting the msg
-	char *text;                              //!< message contents
+	char *text;                             //!< message contents
 } FLOG_MSG_T;
 
 struct flog_t {
 	char *name;                             //!< name of log
 	FLOG_MSG_TYPE_T accepted_msg_type;      //!< bitmask of which messages to accept
-	int (*output_func)(const FLOG_MSG_T *,void *); //!< function to output messages to
+	int (*output_func)(struct flog_t *,const FLOG_MSG_T *); //!< function to output messages to
 	void *output_func_data;                 //!< data passed to output func
 	int output_error;                       //!< errors occurred on output
 	int output_stop_on_error;               //!< stop outputting messages on error
@@ -153,7 +168,11 @@ struct flog_t {
 typedef struct flog_t FLOG_T;
 
 void init_flog_msg_t(FLOG_MSG_T *p);
+#ifdef FLOG_SRC_INFO
+FLOG_MSG_T * create_flog_msg_t(const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T msg_type,const char *subsystem,const char *text);
+#else
 FLOG_MSG_T * create_flog_msg_t(FLOG_MSG_TYPE_T msg_type,const char *subsystem,const char *text);
+#endif
 void destroy_flog_msg_t(FLOG_MSG_T *p);
 
 void init_flog_t(FLOG_T *p);
@@ -164,8 +183,13 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg);
 void flog_clear_msg_buffer(FLOG_T *p);
 int flog_append_sublog(FLOG_T *p,FLOG_T *sublog);
 
-int flog_print(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text);
-int flog_printf(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *textf, ...);
+#ifdef FLOG_SRC_INFO
+int _flog_print(FLOG_T *p,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text);
+int _flog_printf(FLOG_T *p,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *textf, ...);
+#else
+int _flog_print(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text);
+int _flog_printf(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *textf, ...);
+#endif
 
 char * flog_msg_t_to_str(const FLOG_MSG_T *p);
 char * flog_get_msg_type_str(FLOG_MSG_TYPE_T type);
