@@ -323,13 +323,13 @@ char * flog_msg_t_to_str(const FLOG_MSG_T *p)
 #else
 #ifdef FLOG_SRC_INFO
 	if((p->subsystem != NULL) && (typestr != NULL))
-		asprintf(&str,"%s:%d %s() [%s] %s%s\n",p->src_file,p->src_line,p->src_func,p->subsystem,typestr,p->text);
+		asprintf(&str,"[%s:%d|%s()|%s] %s%s\n",p->src_file,p->src_line,p->src_func,p->subsystem,typestr,p->text);
 	else if((p->subsystem != NULL) && (typestr == NULL))
-		asprintf(&str,"%s:%d %s() [%s] %s\n",p->src_file,p->src_line,p->src_func,p->subsystem,p->text);
+		asprintf(&str,"[%s:%d|%s()|%s] %s\n",p->src_file,p->src_line,p->src_func,p->subsystem,p->text);
 	else if((p->subsystem == NULL) && (typestr != NULL))
-		asprintf(&str,"%s:%d %s() %s%s\n",p->src_file,p->src_line,p->src_func,typestr,p->text);
+		asprintf(&str,"[%s:%d|%s()] %s%s\n",p->src_file,p->src_line,p->src_func,typestr,p->text);
 	else
-		asprintf(&str,"%s:%d %s() %s\n",p->src_file,p->src_line,p->src_func,p->text);
+		asprintf(&str,"[%s:%d|%s()] %s\n",p->src_file,p->src_line,p->src_func,p->text);
 #else
 	if((p->subsystem != NULL) && (typestr != NULL))
 		asprintf(&str,"[%s] %s%s\n",p->subsystem,typestr,p->text);
@@ -339,8 +339,8 @@ char * flog_msg_t_to_str(const FLOG_MSG_T *p)
 		asprintf(&str,"%s%s\n",typestr,p->text);
 	else
 		asprintf(&str,"%s\n",p->text);
-#endif
-#endif
+#endif //FLOG_SRC_INFO
+#endif //FLOG_TIMESTAMP
 	free(typestr);
 	return(str);
 }
