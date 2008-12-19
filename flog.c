@@ -1,6 +1,6 @@
 /*!
 	@file flog.c
-	@brief Flog logging library
+	@brief Flog - The F logging library
 	@author Nabeel Sowan (nabeel.sowan@vibes.se)
 	
 	Useful as the main logger of a program
@@ -33,7 +33,7 @@ void init_flog_msg_t(FLOG_MSG_T *p)
 
 //! create and return a FLOG_MSG_T type
 /*!
-	@return NULL = error
+	@retval NULL error
 */
 #ifdef FLOG_SRC_INFO
 FLOG_MSG_T * create_flog_msg_t(const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text)
@@ -112,7 +112,7 @@ void init_flog_t(FLOG_T *p)
 
 //! create and return a FLOG_T type
 /*!
-	@return NULL = error
+	@retval NULL error
 */
 FLOG_T * create_flog_t(const char *name, FLOG_MSG_TYPE_T accepted_msg_type)
 {
@@ -141,47 +141,48 @@ void destroy_flog_t(FLOG_T *p)
 				destroy_flog_msg_t(p->msg[i]);
 			free(p->msg);
 		}
-		free(p->sublog); //!< Note that the sublogs themselves are not freed 
+		free(p->sublog); //! Note that sublogs are not freed 
 		free(p);
 	}
 }
 
 //! add a FLOG_MSG_T to FLOG_T and do all required logic (used by flog_print[f] functions)
 /*!
-	@param p target log
-	@param msg message to add
-	@return 0 = success
+	@param[out] p target log
+	@param[in] msg message to add
+	@retval 0 success
 */
 int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 {
 	int e=0;
 	
-	//create temporary msg to allow reformatting the message
-	FLOG_MSG_T *tmpmsg;
-#ifdef FLOG_SRC_INFO
-	if((tmpmsg=create_flog_msg_t(msg->src_file,msg->src_line,msg->src_func,msg->type,msg->subsystem,msg->text))==NULL)
-#else
-	if((tmpmsg=create_flog_msg_t(msg->type,msg->subsystem,msg->text))==NULL)
-#endif
-		return(1);
-	
-	//append name to subsystem
-	if((p->name != NULL) && (strlen(p->name)==0))
-		free(p->name);
-	if((tmpmsg->subsystem != NULL) && (strlen(tmpmsg->subsystem)==0))
-		free(tmpmsg->subsystem);
-	if((p->name != NULL) && (tmpmsg->subsystem != NULL)) {
-		char *tmpstr;
-		if(asprintf(&tmpstr,"%s/%s",p->name,tmpmsg->subsystem)!=-1) {
-			free(tmpmsg->subsystem);
-			tmpmsg->subsystem=tmpstr;
-		}	
-	}
-	else if((p->name != NULL) && (tmpmsg->subsystem == NULL))
-		asprintf(&tmpmsg->subsystem,p->name);
-	
 	//compare if accepted message type
-	if(tmpmsg->type & p->accepted_msg_type) {
+	if(msg->type & p->accepted_msg_type) {
+		
+		//create temporary msg to allow reformatting the message
+		FLOG_MSG_T *tmpmsg;
+#ifdef FLOG_SRC_INFO
+		if((tmpmsg=create_flog_msg_t(msg->src_file,msg->src_line,msg->src_func,msg->type,msg->subsystem,msg->text))==NULL)
+#else
+		if((tmpmsg=create_flog_msg_t(msg->type,msg->subsystem,msg->text))==NULL)
+#endif
+			return(1);
+		
+		//append name to subsystem
+		if((p->name != NULL) && (strlen(p->name)==0))
+			free(p->name);
+		if((tmpmsg->subsystem != NULL) && (strlen(tmpmsg->subsystem)==0))
+			free(tmpmsg->subsystem);
+		if((p->name != NULL) && (tmpmsg->subsystem != NULL)) {
+			char *tmpstr;
+			if(asprintf(&tmpstr,"%s/%s",p->name,tmpmsg->subsystem)!=-1) {
+				free(tmpmsg->subsystem);
+				tmpmsg->subsystem=tmpstr;
+			}	
+		}
+		else if((p->name != NULL) && (tmpmsg->subsystem == NULL))
+			asprintf(&tmpmsg->subsystem,p->name);
+		
 		//add message to buffer	
 		if(p->msg_amount<p->msg_max) {
 			FLOG_MSG_T **new_msg;
@@ -199,15 +200,15 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 					p->output_error=e;
 			}
 		}
+		
+		//add message to sublogs
+		int i;
+		for(i=0;i<p->sublog_amount;i++) {
+			if(flog_add_msg(p->sublog[i],tmpmsg))
+				e=1;
+		}
+		destroy_flog_msg_t(tmpmsg);
 	}
-	
-	//add message to sublogs
-	int i;
-	for(i=0;i<p->sublog_amount;i++) {
-		if(flog_add_msg(p->sublog[i],tmpmsg))
-			e=1;
-	}
-	destroy_flog_msg_t(tmpmsg);
 	return(e);
 }
 
@@ -225,9 +226,9 @@ void flog_clear_msg_buffer(FLOG_T *p)
 
 //! add a sublog to a log
 /*!
-	@param p target log
-	@param sublog log to add
-	@return 0 = success
+	@param[out] p target log
+	@param[in] sublog log to add
+	@retval 0 success
 */
 int flog_append_sublog(FLOG_T *p,FLOG_T *sublog)
 {
@@ -249,9 +250,9 @@ int flog_append_sublog(FLOG_T *p,FLOG_T *sublog)
 //! output an flog message
 /*!
 	@param type use one of the FLOG_* defines
-	@param subsystem which part of the program is outputing this message (use __func__ typically)
+	@param subsystem which part of the program is outputing this message
 	@param text message text
-	@return 0 = success
+	@retval 0 success
 */
 #ifdef FLOG_SRC_INFO
 int _flog_print(FLOG_T *p,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text)
@@ -279,9 +280,9 @@ int _flog_print(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char 
 //! output a formatted flog message (calls flog_print())
 /*!
 	@param type use one of the FLOG_* defines
-	@param subsystem which part of the program is outputing this message (use __func__ typically)
+	@param subsystem which part of the program is outputing this message
 	@param textf formatted message text
-	@return 0 = success
+	@retval 0 success
 */
 #ifdef FLOG_SRC_INFO
 int _flog_printf(FLOG_T *p,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *textf, ...)
@@ -312,7 +313,8 @@ int _flog_printf(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char
 
 //! create and return a string from FLOG_MSG_T type
 /*!
-	@return NULL = error
+	@return formatted string built from message
+	@retval NULL error
 */
 char * flog_msg_t_to_str(const FLOG_MSG_T *p)
 {
@@ -346,6 +348,10 @@ char * flog_msg_t_to_str(const FLOG_MSG_T *p)
 }
 
 //! Return a string or NULL according to message type
+/*!
+	@return string used for signifying message type
+	@retval NULL returned instead of empty string or error
+ */
 char * flog_get_msg_type_str(FLOG_MSG_TYPE_T type)
 {
 	int e=-1;
@@ -382,6 +388,7 @@ char * flog_get_msg_type_str(FLOG_MSG_TYPE_T type)
 	return(str);
 }
 
+//! Test various flog features
 void flog_test(FLOG_T *p)
 {
 	flog_printf(p,FLOG_NONE,__func__,"This is a test message with FLOG_NONE (0x%02x) as type - This message should NEVER be visible",FLOG_NONE);

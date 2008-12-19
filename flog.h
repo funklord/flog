@@ -1,6 +1,6 @@
 /*!
 	@file flog.h
-	@brief Flog logging library
+	@brief Flog - The F logging library
 	@author Nabeel Sowan (nabeel.sowan@vibes.se)
 	
 	Useful as the main logger of a program
@@ -150,7 +150,7 @@ typedef struct {
 	char *text;                             //!< message contents
 } FLOG_MSG_T;
 
-struct flog_t {
+typedef struct flog_t {
 	char *name;                             //!< name of log
 	FLOG_MSG_TYPE_T accepted_msg_type;      //!< bitmask of which messages to accept
 	int (*output_func)(struct flog_t *,const FLOG_MSG_T *); //!< function to output messages to
@@ -163,9 +163,7 @@ struct flog_t {
 	int msg_max;                            //!< maximum amount of buffered messages
 	struct flog_t **sublog;                 //!< array of sublogs
 	int sublog_amount;                      //!< amount of sublogs in array
-};
-
-typedef struct flog_t FLOG_T;
+} FLOG_T;
 
 void init_flog_msg_t(FLOG_MSG_T *p);
 #ifdef FLOG_SRC_INFO
