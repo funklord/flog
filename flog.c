@@ -1,10 +1,8 @@
-/*!
-	@file flog.c
-	@brief Flog - The F logging library
-	@author Nabeel Sowan (nabeel.sowan@vibes.se)
-	
-	Useful as the main logger of a program
-*/
+//! @file flog.c
+//! @brief Flog - The F logging library
+//! @author Nabeel Sowan (nabeel.sowan@vibes.se)
+//!
+//! Useful as the main logger of a program
 
 #include "flog.h"
 #define _GNU_SOURCE
@@ -16,6 +14,8 @@
 //#include <time.h>
 
 //! initialise a FLOG_MSG_T to defaults
+
+//! internal use only, or when extending flog
 void init_flog_msg_t(FLOG_MSG_T *p)
 {
 #ifdef FLOG_TIMESTAMP
@@ -32,9 +32,9 @@ void init_flog_msg_t(FLOG_MSG_T *p)
 }
 
 //! create and return a FLOG_MSG_T type
-/*!
-	@retval NULL error
-*/
+
+//! internal use only, or when creating flog output function
+//! @retval NULL error
 #ifdef FLOG_SRC_INFO
 FLOG_MSG_T * create_flog_msg_t(const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text)
 #else
@@ -80,6 +80,8 @@ FLOG_MSG_T * create_flog_msg_t(FLOG_MSG_TYPE_T type,const char *subsystem,const 
 }
 
 //! free a FLOG_MSG_T
+
+//! internal use only, or when creating flog output function
 void destroy_flog_msg_t(FLOG_MSG_T *p)
 {
 	if(p!=NULL) {
@@ -94,6 +96,8 @@ void destroy_flog_msg_t(FLOG_MSG_T *p)
 }
 
 //! initialise a FLOG_T to defaults
+
+//! mainly internal use, or when extending flog
 void init_flog_t(FLOG_T *p)
 {
 	p->name=NULL;
@@ -111,9 +115,8 @@ void init_flog_t(FLOG_T *p)
 }
 
 //! create and return a FLOG_T type
-/*!
-	@retval NULL error
-*/
+
+//! @retval NULL error
 FLOG_T * create_flog_t(const char *name, FLOG_MSG_TYPE_T accepted_msg_type)
 {
 	FLOG_T *p;
@@ -147,11 +150,11 @@ void destroy_flog_t(FLOG_T *p)
 }
 
 //! add a FLOG_MSG_T to FLOG_T and do all required logic (used by flog_print[f] functions)
-/*!
-	@param[out] p target log
-	@param[in] msg message to add
-	@retval 0 success
-*/
+
+//! internal use only, or when extending flog
+//! @param[out] p target log
+//! @param[in] msg message to add
+//! @retval 0 success
 int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 {
 	int e=0;
@@ -225,11 +228,10 @@ void flog_clear_msg_buffer(FLOG_T *p)
 }
 
 //! add a sublog to a log
-/*!
-	@param[out] p target log
-	@param[in] sublog log to add
-	@retval 0 success
-*/
+
+//! @param[out] p target log
+//! @param[in] sublog log to add
+//! @retval 0 success
 int flog_append_sublog(FLOG_T *p,FLOG_T *sublog)
 {
 	if(p==NULL)
@@ -247,13 +249,18 @@ int flog_append_sublog(FLOG_T *p,FLOG_T *sublog)
 	return(0);
 }
 
-//! output an flog message
-/*!
-	@param type use one of the FLOG_* defines
-	@param subsystem which part of the program is outputing this message
-	@param text message text
-	@retval 0 success
-*/
+//! do not call directly, use the flog_print() macro instead
+
+//! emit an flog message
+//! @param[out] p log to emit message to
+//! @param[in] src_file source code file (flog_print() macro uses __FILE__ to fill this in)
+//! @param[in] src_line source code line (flog_print() macro uses __LINE__ to fill this in)
+//! @param[in] src_func source code function (flog_print() macro uses __FUNCTION__ to fill this in)
+//! @param[in] type use one of the FLOG_* defines
+//! @param[in] subsystem which part of the program is outputing this message
+//! @param[in] text message text
+//! @retval 0 success
+//! @see flog_print()
 #ifdef FLOG_SRC_INFO
 int _flog_print(FLOG_T *p,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text)
 #else
@@ -277,13 +284,18 @@ int _flog_print(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char 
 	return(0);
 }
 
-//! output a formatted flog message (calls flog_print())
-/*!
-	@param type use one of the FLOG_* defines
-	@param subsystem which part of the program is outputing this message
-	@param textf formatted message text
-	@retval 0 success
-*/
+//! do not call directly, use the flog_printf() macro instead
+
+//! emit a formatted flog message (calls _flog_print())
+//! @param[out] p log to emit message to
+//! @param[in] src_file source code file (flog_printf() macro uses __FILE__ to fill this in)
+//! @param[in] src_line source code line (flog_printf() macro uses __LINE__ to fill this in)
+//! @param[in] src_func source code function (flog_printf() macro uses __FUNCTION__ to fill this in)
+//! @param[in] type use one of the FLOG_* defines
+//! @param[in] subsystem which part of the program is outputing this message
+//! @param[in] textf formatted message text
+//! @retval 0 success
+//! @see flog_printf()
 #ifdef FLOG_SRC_INFO
 int _flog_printf(FLOG_T *p,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *textf, ...)
 #else
@@ -312,10 +324,10 @@ int _flog_printf(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char
 }
 
 //! create and return a string from FLOG_MSG_T type
-/*!
-	@return formatted string built from message
-	@retval NULL error
-*/
+
+//! internal use only, or when creating flog output function
+//! @return formatted string built from message
+//! @retval NULL error
 char * flog_msg_t_to_str(const FLOG_MSG_T *p)
 {
 	char *str,*typestr;
@@ -348,10 +360,10 @@ char * flog_msg_t_to_str(const FLOG_MSG_T *p)
 }
 
 //! Return a string or NULL according to message type
-/*!
-	@return string used for signifying message type
-	@retval NULL returned instead of empty string or error
- */
+
+//! internal use only, or when creating flog output function
+//! @return string used for signifying message type
+//! @retval NULL returned instead of empty string or error
 char * flog_get_msg_type_str(FLOG_MSG_TYPE_T type)
 {
 	int e=-1;
@@ -388,6 +400,7 @@ char * flog_get_msg_type_str(FLOG_MSG_TYPE_T type)
 	return(str);
 }
 
+#ifdef DEBUG
 //! Test various flog features
 void flog_test(FLOG_T *p)
 {
@@ -402,12 +415,12 @@ void flog_test(FLOG_T *p)
 	flog_printf(p,FLOG_FLOG_DEBUG,__func__,"This is a test message with FLOG_FLOG_DEBUG (0x%02x) as type - This message should only be visible when debugging the flog library itself",FLOG_FLOG_DEBUG);
 	flog_dprintf(p,FLOG_CRITICAL,__func__,"This is a test message using flog_dprintf() macro with FLOG_CRITICAL (0x%02x) as type",FLOG_CRITICAL);
 }
+#endif
 
 #ifdef FLOG_TIMESTAMP
 //! Return a string with current timestamp in ISO-format
-/*!
-	@todo this function is probably a memory leak by design :(
-*/
+
+//! @todo this function is probably a memory leak by design :(
 const char * get_timestamp(void)
 {
 	static char str[30];

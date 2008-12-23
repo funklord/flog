@@ -1,10 +1,8 @@
-/*!
-	@file flog.h
-	@brief Flog - The F logging library
-	@author Nabeel Sowan (nabeel.sowan@vibes.se)
-	
-	Useful as the main logger of a program
-*/
+//! @file flog.h
+//! @brief Flog - The F logging library
+//! @author Nabeel Sowan (nabeel.sowan@vibes.se)
+//!
+//! Useful as the main logger of a program
 
 #ifndef FLOG_H
 #define FLOG_H
@@ -59,10 +57,14 @@ typedef enum flog_msg_type {
 
 #else /* FLOG_MSG_TYPE_ENUM_API */
 
+//! @addtogroup FLOG_MSG_TYPE_T
+//! @brief Types of messages supported by FLOG
+//! @details Use where ever a @ref FLOG_MSG_TYPE_T is referred
+//! @{
+
 typedef unsigned char FLOG_MSG_TYPE_T;
 
 //! Nothing
-
 #define FLOG_NONE         0x00
 #define FLOG_NOTHING      FLOG_NONE
 
@@ -101,34 +103,92 @@ typedef unsigned char FLOG_MSG_TYPE_T;
 //! Debug info for flog itself
 #define FLOG_FLOG_DEBUG   0x80
 
-//! Bitmask to show only errors
+//! @}
+
+
+//! @addtogroup FLOG_ACCEPT_BITMASKS
+//! @brief Bitmasks for filtering messages
+//! @details Set the variable @ref FLOG_T->accepted_message_type
+//! @{
+
+//! Bitmask to accept only critical
 #define FLOG_ACCEPT_ONLY_CRITICAL     FLOG_CRIT
+//! Bitmask to accept only errors
 #define FLOG_ACCEPT_ONLY_ERROR        FLOG_CRIT | FLOG_ERR
+//! Bitmask to accept error and warning
 #define FLOG_ACCEPT_ERROR_AND_WARNING FLOG_CRIT | FLOG_ERR | FLOG_WARN
+//! Bitmask to accept all important messages
 #define FLOG_ACCEPT_IMPORTANT_NOTE    FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE
+//! Bitmask to accept informational messages
 #define FLOG_ACCEPT_INFO              FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO
+//! Bitmask to accept verbose messages
 #define FLOG_ACCEPT_VERBOSE_INFO      FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO
+//! Bitmask to accept all messages (except flog internal debug)
 #define FLOG_ACCEPT_ALL               FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG
+//! Bitmask to accept all messages
 #define FLOG_ACCEPT_FLOG_DEBUG        FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG | FLOG_FLOG_DEBUG
+
+//! @}
 
 #endif /* FLOG_MSG_TYPE_ENUM_API */
 
-//! Macros to insert source info into print strings
+// Macros to insert source info into print strings
+// Maybe it is better to use __func__ than __FUNCTION__ ?
+
+//! emit an flog message
+
+//! use this when you need to emit simple text messages and flog_printf() when formatting is needed
+//! @param[out] p log to emit message to
+//! @param[in] type use one of the FLOG_* defines
+//! @param[in] subsystem which part of the program is outputing this message
+//! @param[in] text message text
+//! @retval 0 success
+//! @see _flog_print(), flog_printf(), flog_dprint()
 #ifdef FLOG_SRC_INFO
-//Maybe it is better to use __func__ than __FUNCTION__ ?
 #define flog_print(p, type, subsystem, text) _flog_print (p, __FILE__,  __LINE__, __FUNCTION__, type, subsystem, text)
-#define flog_printf(p, type, subsystem, ...) _flog_printf (p, __FILE__,  __LINE__, __FUNCTION__, type, subsystem, __VA_ARGS__)
 #else
 #define flog_print(p, type, subsystem, text) _flog_print (p, type, subsystem, text)
+#endif
+
+//! emit a formatted flog message (calls flog_print())
+
+//! use this when you need to emit formatted text messages and flog_print() when no formatting is needed
+//! @param[out] p log to emit message to
+//! @param[in] type use one of the FLOG_* defines
+//! @param[in] subsystem which part of the program is outputing this message
+//! @param[in] ... formatted message text
+//! @retval 0 success
+//! @see _flog_printf(), flog_print(), flog_dprintf()
+#ifdef FLOG_SRC_INFO
+#define flog_printf(p, type, subsystem, ...) _flog_printf (p, __FILE__,  __LINE__, __FUNCTION__, type, subsystem, __VA_ARGS__)
+#else
 #define flog_printf(p, type, subsystem, ...) _flog_printf (p, type, subsystem, __VA_ARGS__)
 #endif
 
-//! Macros to allow removal of messages from release builds
+//! Macro for flog assert functionality
+
+//! @param[out] p log to emit message to
+//! @param[in] cond statement to evaluate
+#define flog_assert(p, cond) ((cond) || flog_printf(p,FLOG_ERROR,"assert","Assertion failed: %s",#cond))
+
+// Macros to allow removal of messages from release builds
+//! Same as flog_print() but only defined if DEBUG is set
+
+//! Use this macro to allow removal of messages from release builds
+//! @see flog_print()
 #ifdef DEBUG
 #define flog_dprint(p, type, subsystem, text) flog_print (p, type, subsystem, text)
-#define flog_dprintf(p, type, subsystem, ...) flog_printf (p, type, subsystem, __VA_ARGS__)
 #else
 #define flog_dprint(p, type, subsystem, text)
+#endif
+
+//! Same as flog_printf() but only defined if DEBUG is set
+
+//! Use this macro to allow removal of messages from release builds
+//! @see flog_printf()
+#ifdef DEBUG
+#define flog_dprintf(p, type, subsystem, ...) flog_printf (p, type, subsystem, __VA_ARGS__)
+#else
 #define flog_dprintf(p, type, subsystem, ...)
 #endif
 
@@ -136,6 +196,7 @@ typedef unsigned char FLOG_MSG_TYPE_T;
 typedef int FLOG_TIMESTAMP_T;
 #endif
 
+//! Message structure - Holds all data related to a single message
 typedef struct {
 #ifdef FLOG_TIMESTAMP
 	FLOG_TIMESTAMP_T time;                  //!< timestamp
@@ -150,6 +211,11 @@ typedef struct {
 	char *text;                             //!< message contents
 } FLOG_MSG_T;
 
+//! Main log structure - typedefined as @ref FLOG_T
+
+//! These can be appended to each other in a tree structure (by using flog_append_sublog())
+//! to form good flow and structure in software.
+//! Sublogs are created for 3 main purposes: namespacing, multiple outputs and filtering
 typedef struct flog_t {
 	char *name;                             //!< name of log
 	FLOG_MSG_TYPE_T accepted_msg_type;      //!< bitmask of which messages to accept

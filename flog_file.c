@@ -19,7 +19,7 @@ int flog_output_file(FLOG_T *log,const FLOG_MSG_T *msg)
 		return(1);
 	if(log->output_func_data==NULL) {
 		log->output_error=1;
-		flog_print(log->error_log,FLOG_ERROR,NULL,"please set filename for flog_output_file()");
+		flog_print(log->error_log,FLOG_ERROR,"flog_file_output","please set log output filename");
 		e=1;
 	} else {
 		FILE *f;

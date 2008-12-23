@@ -39,8 +39,10 @@ int main(void)
 	flog_print(log_subfunc,FLOG_ERROR,"print_test","testing...");
 	flog_printf(log_subfunc,FLOG_INFO,"printf_test","testing... %d %d %d",1,2,3);
 	
+#ifdef DEBUG
 	printf("-[flog test suite]-\n");
 	flog_test(log_main);
+#endif
 	
 	//clean up
 	destroy_flog_t(log_subfunc);
