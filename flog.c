@@ -4,12 +4,13 @@
 //!
 //! Useful as the main logger of a program
 
-#include "flog.h"
 #define _GNU_SOURCE
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <stdarg.h>
+
+#include "flog.h"
 
 //#include <time.h>
 
@@ -139,7 +140,7 @@ void destroy_flog_t(FLOG_T *p)
 	if(p!=NULL) {
 		free(p->name);
 		if(p->msg!=NULL) {
-			int i;
+			uint_fast16_t i;
 			for(i=0;i<p->msg_amount;i++)
 				destroy_flog_msg_t(p->msg[i]);
 			free(p->msg);
@@ -205,7 +206,7 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 		}
 		
 		//add message to sublogs
-		int i;
+		uint_fast8_t i;
 		for(i=0;i<p->sublog_amount;i++) {
 			if(flog_add_msg(p->sublog[i],tmpmsg))
 				e=1;
@@ -219,7 +220,7 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 void flog_clear_msg_buffer(FLOG_T *p)
 {
 	if((p!=NULL) && (p->msg!=NULL)) {
-		int i;
+		uint_fast16_t i;
 		for(i=0;i<p->msg_amount;i++)
 			destroy_flog_msg_t(p->msg[i]);
 		free(p->msg);
@@ -337,13 +338,13 @@ char * flog_msg_t_to_str(const FLOG_MSG_T *p)
 #else
 #ifdef FLOG_SRC_INFO
 	if((p->subsystem != NULL) && (typestr != NULL))
-		asprintf(&str,"[%s:%d|%s() %s] %s%s\n",p->src_file,p->src_line,p->src_func,p->subsystem,typestr,p->text);
+		asprintf(&str,"[%s:%d|%s() %s] %s%s\n",p->src_file,(int)p->src_line,p->src_func,p->subsystem,typestr,p->text);
 	else if((p->subsystem != NULL) && (typestr == NULL))
-		asprintf(&str,"[%s:%d|%s() %s] %s\n",p->src_file,p->src_line,p->src_func,p->subsystem,p->text);
+		asprintf(&str,"[%s:%d|%s() %s] %s\n",p->src_file,(int)p->src_line,p->src_func,p->subsystem,p->text);
 	else if((p->subsystem == NULL) && (typestr != NULL))
-		asprintf(&str,"[%s:%d|%s()] %s%s\n",p->src_file,p->src_line,p->src_func,typestr,p->text);
+		asprintf(&str,"[%s:%d|%s()] %s%s\n",p->src_file,(int)p->src_line,p->src_func,typestr,p->text);
 	else
-		asprintf(&str,"[%s:%d|%s()] %s\n",p->src_file,p->src_line,p->src_func,p->text);
+		asprintf(&str,"[%s:%d|%s()] %s\n",p->src_file,(int)p->src_line,p->src_func,p->text);
 #else
 	if((p->subsystem != NULL) && (typestr != NULL))
 		asprintf(&str,"[%s] %s%s\n",p->subsystem,typestr,p->text);
@@ -366,7 +367,7 @@ char * flog_msg_t_to_str(const FLOG_MSG_T *p)
 //! @retval NULL returned instead of empty string or error
 char * flog_get_msg_type_str(FLOG_MSG_TYPE_T type)
 {
-	int e=-1;
+	int_fast8_t e=-1;
 	char *str=NULL;
 	switch(type)
 	{

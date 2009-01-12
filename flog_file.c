@@ -30,10 +30,14 @@ int flog_output_file(FLOG_T *log,const FLOG_MSG_T *msg)
 		} else {
 			if(fprintf(f,str)<0) {
 				log->output_error=1;
-				flog_printf(log->error_log,FLOG_ERROR,NULL,"cannot write to file: %s",log->output_func_data);
+				flog_printf(log->error_log,FLOG_ERROR,"fprintf","cannot write to file: %s",log->output_func_data);
 				e=1;
 			}
-			fclose(f);
+			if(fclose(f)==EOF) {
+				log->output_error=1;
+				flog_printf(log->error_log,FLOG_ERROR,"fflush","cannot write to file: %s",log->output_func_data);
+				e=1;
+			}
 		}
 	}
 	free(str);

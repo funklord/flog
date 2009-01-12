@@ -3,9 +3,12 @@
 //! @author Nabeel Sowan (nabeel.sowan@vibes.se)
 //!
 //! Useful as the main logger of a program
+//! Requires C99 support
 
 #ifndef FLOG_H
 #define FLOG_H
+
+#include <stdint.h>
 
 /* FLOG_MSG_TYPE_ENUM_API allows switching to an enum API for flog.
 What this means is that FLOG_MSG_TYPE_T will be defined as an int 
@@ -62,7 +65,7 @@ typedef enum flog_msg_type {
 //! @details Use where ever a @ref FLOG_MSG_TYPE_T is referred
 //! @{
 
-typedef unsigned char FLOG_MSG_TYPE_T;
+typedef uint_fast8_t FLOG_MSG_TYPE_T;
 
 //! Nothing
 #define FLOG_NONE         0x00
@@ -145,9 +148,9 @@ typedef unsigned char FLOG_MSG_TYPE_T;
 //! @retval 0 success
 //! @see _flog_print(), flog_printf(), flog_dprint()
 #ifdef FLOG_SRC_INFO
-#define flog_print(p, type, subsystem, text) _flog_print (p, __FILE__,  __LINE__, __FUNCTION__, type, subsystem, text)
+#define flog_print(p, type, subsystem, text) _flog_print(p,__FILE__,__LINE__,__FUNCTION__,type,subsystem,text)
 #else
-#define flog_print(p, type, subsystem, text) _flog_print (p, type, subsystem, text)
+#define flog_print(p, type, subsystem, text) _flog_print(p,type,subsystem,text)
 #endif
 
 //! emit a formatted flog message (calls flog_print())
@@ -160,24 +163,17 @@ typedef unsigned char FLOG_MSG_TYPE_T;
 //! @retval 0 success
 //! @see _flog_printf(), flog_print(), flog_dprintf()
 #ifdef FLOG_SRC_INFO
-#define flog_printf(p, type, subsystem, ...) _flog_printf (p, __FILE__,  __LINE__, __FUNCTION__, type, subsystem, __VA_ARGS__)
+#define flog_printf(p, type, subsystem, ...) _flog_printf(p,__FILE__,__LINE__,__FUNCTION__,type,subsystem,__VA_ARGS__)
 #else
-#define flog_printf(p, type, subsystem, ...) _flog_printf (p, type, subsystem, __VA_ARGS__)
+#define flog_printf(p, type, subsystem, ...) _flog_printf(p,type,subsystem,__VA_ARGS__)
 #endif
 
-//! Macro for flog assert functionality
-
-//! @param[out] p log to emit message to
-//! @param[in] cond statement to evaluate
-#define flog_assert(p, cond) ((cond) || flog_printf(p,FLOG_ERROR,"assert","Assertion failed: %s",#cond))
-
-// Macros to allow removal of messages from release builds
 //! Same as flog_print() but only defined if DEBUG is set
 
 //! Use this macro to allow removal of messages from release builds
 //! @see flog_print()
 #ifdef DEBUG
-#define flog_dprint(p, type, subsystem, text) flog_print (p, type, subsystem, text)
+#define flog_dprint(p, type, subsystem, text) flog_print(p,type,subsystem,text)
 #else
 #define flog_dprint(p, type, subsystem, text)
 #endif
@@ -187,9 +183,29 @@ typedef unsigned char FLOG_MSG_TYPE_T;
 //! Use this macro to allow removal of messages from release builds
 //! @see flog_printf()
 #ifdef DEBUG
-#define flog_dprintf(p, type, subsystem, ...) flog_printf (p, type, subsystem, __VA_ARGS__)
+#define flog_dprintf(p, type, subsystem, ...) flog_printf(p,type,subsystem,__VA_ARGS__)
 #else
 #define flog_dprintf(p, type, subsystem, ...)
+#endif
+
+//! Macro for flog assert functionality
+
+//! @param[out] p log to emit message to
+//! @param[in] cond statement to evaluate
+#ifdef FLOG_ABORT_ON_ASSERT
+#define flog_assert(p, cond) \
+{ \
+	if(!(cond)) { \
+		flog_printf(p,FLOG_ERROR,"assert","Assertion failed: %s",#cond); \
+		abort(); \
+	} \
+}
+#else
+#define flog_assert(p, cond) \
+{ \
+	if(!(cond)) \
+		flog_printf(p,FLOG_ERROR,"assert","Assertion failed: %s",#cond); \
+}
 #endif
 
 #ifdef FLOG_TIMESTAMP
@@ -203,7 +219,7 @@ typedef struct {
 #endif
 #ifdef FLOG_SRC_INFO
 	char *src_file;                         //!< source file emitting message
-	int src_line;                           //!< source line number emitting message
+	uint_fast16_t src_line;                 //!< source line number emitting message
 	char *src_func;                         //!< source function emitting message
 #endif
 	FLOG_MSG_TYPE_T type;                   //!< type of message
@@ -221,14 +237,14 @@ typedef struct flog_t {
 	FLOG_MSG_TYPE_T accepted_msg_type;      //!< bitmask of which messages to accept
 	int (*output_func)(struct flog_t *,const FLOG_MSG_T *); //!< function to output messages to
 	void *output_func_data;                 //!< data passed to output func
-	int output_error;                       //!< errors occurred on output
-	int output_stop_on_error;               //!< stop outputting messages on error
+	uint_fast8_t output_error;              //!< errors occurred on output
+	uint_fast8_t output_stop_on_error;      //!< stop outputting messages on error
 	struct flog_t *error_log;               //!< error log for flog errors
 	FLOG_MSG_T **msg;                       //!< array of messages
-	int msg_amount;                         //!< amount of messages in array
-	int msg_max;                            //!< maximum amount of buffered messages
+	uint_fast16_t msg_amount;               //!< amount of messages in array
+	uint_fast16_t msg_max;                  //!< maximum amount of buffered messages
 	struct flog_t **sublog;                 //!< array of sublogs
-	int sublog_amount;                      //!< amount of sublogs in array
+	uint_fast8_t sublog_amount;             //!< amount of sublogs in array
 } FLOG_T;
 
 void init_flog_msg_t(FLOG_MSG_T *p);
