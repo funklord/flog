@@ -1,6 +1,6 @@
 ##Config
 CC       = gcc
-CFLAGS   = -Wall -Os
+CFLAGS   = -Wall -Os -DFLOG_SRC_INFO
 LDFLAGS  = -Wall -Os
 ifdef DEBUG
 CFLAGS  += -g -DDEBUG
