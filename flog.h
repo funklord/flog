@@ -10,6 +10,11 @@
 
 #include <stdint.h>
 
+//Always define FLOG_SRC_INFO if debug build
+#ifdef DEBUG
+#define FLOG_SRC_INFO
+#endif
+
 /* FLOG_MSG_TYPE_ENUM_API allows switching to an enum API for flog.
 What this means is that FLOG_MSG_TYPE_T will be defined as an int 
 (instead of unsigned char) In return, enums may yield stronger

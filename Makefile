@@ -33,6 +33,6 @@ valgrind_test: test
 
 clean:
 	$(RM) $(OBJ) test
-	
+
 distclean: clean
 	$(RM) -r doxygen
