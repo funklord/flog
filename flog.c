@@ -93,6 +93,7 @@ void destroy_flog_msg_t(FLOG_MSG_T *p)
 		free(p->subsystem);
 		free(p->text);
 		free(p);
+		p=NULL;
 	}
 }
 
@@ -145,8 +146,9 @@ void destroy_flog_t(FLOG_T *p)
 				destroy_flog_msg_t(p->msg[i]);
 			free(p->msg);
 		}
-		free(p->sublog); //! Note that sublogs are not freed 
+		free(p->sublog); //! Note that sublogs are not freed
 		free(p);
+		p=NULL;
 	}
 }
 
@@ -159,10 +161,10 @@ void destroy_flog_t(FLOG_T *p)
 int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 {
 	int e=0;
-	
+
 	//compare if accepted message type
 	if(msg->type & p->accepted_msg_type) {
-		
+
 		//create temporary msg to allow reformatting the message
 		FLOG_MSG_T *tmpmsg;
 #ifdef FLOG_SRC_INFO
@@ -171,23 +173,28 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 		if((tmpmsg=create_flog_msg_t(msg->type,msg->subsystem,msg->text))==NULL)
 #endif
 			return(1);
-		
+
 		//append name to subsystem
-		if((p->name != NULL) && (strlen(p->name)==0))
+		if((p->name != NULL) && (strlen(p->name)==0)) {
 			free(p->name);
-		if((tmpmsg->subsystem != NULL) && (strlen(tmpmsg->subsystem)==0))
+			p->name=NULL;
+		}
+		if((tmpmsg->subsystem != NULL) && (strlen(tmpmsg->subsystem)==0)) {
 			free(tmpmsg->subsystem);
+			tmpmsg->subsystem=NULL;
+		}
+
 		if((p->name != NULL) && (tmpmsg->subsystem != NULL)) {
 			char *tmpstr;
 			if(asprintf(&tmpstr,"%s/%s",p->name,tmpmsg->subsystem)!=-1) {
 				free(tmpmsg->subsystem);
 				tmpmsg->subsystem=tmpstr;
-			}	
+			}
 		}
 		else if((p->name != NULL) && (tmpmsg->subsystem == NULL))
 			asprintf(&tmpmsg->subsystem,p->name);
-		
-		//add message to buffer	
+
+		//add message to buffer
 		if(p->msg_amount<p->msg_max) {
 			FLOG_MSG_T **new_msg;
 			if((new_msg=realloc(p->msg,(p->msg_amount+1)*sizeof(FLOG_MSG_T *)))!=NULL) {
@@ -196,7 +203,7 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 				p->msg_amount++;
 			}
 		}
-		
+
 		//run output function
 		if(p->output_func != NULL) {
 			if(p->output_stop_on_error ? !p->output_error : 1) {
@@ -204,7 +211,7 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 					p->output_error=e;
 			}
 		}
-		
+
 		//add message to sublogs
 		uint_fast8_t i;
 		for(i=0;i<p->sublog_amount;i++) {
@@ -224,6 +231,7 @@ void flog_clear_msg_buffer(FLOG_T *p)
 		for(i=0;i<p->msg_amount;i++)
 			destroy_flog_msg_t(p->msg[i]);
 		free(p->msg);
+		p->msg=NULL;
 		p->msg_amount=0;
 	}
 }
