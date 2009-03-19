@@ -1,8 +1,10 @@
+//! Flog - The F logging library
+
 //! @file flog.c
-//! @brief Flog - The F logging library
 //! @author Nabeel Sowan (nabeel.sowan@vibes.se)
 //!
-//! Useful as the main logger of a program
+//! Useful as the main logger of a program or embedded system.
+//! Requires C99 + GNU support.
 
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -12,73 +14,88 @@
 
 #include "flog.h"
 
-//#include <time.h>
 
 //! initialise a FLOG_MSG_T to defaults
 
 //! internal use only, or when extending flog
 void init_flog_msg_t(FLOG_MSG_T *p)
 {
+	memset(p,0,sizeof(FLOG_MSG_T));
 #ifdef FLOG_TIMESTAMP
-	p->time=0;
+	//p->time=0;
 #endif
 #ifdef FLOG_SRC_INFO
-	p->src_file=NULL;
+	//p->src_file=NULL;
 	p->src_line=-1;
-	p->src_func=NULL;
+	//p->src_func=NULL;
 #endif
-	p->type=FLOG_NONE;
-	p->subsystem=NULL;
-	p->text=NULL;
+	//p->subsystem=NULL;
+	//p->type=FLOG_NONE;
+	//p->msg_id=0;
+	//p->text=NULL;
 }
+
 
 //! create and return a FLOG_MSG_T type
 
 //! internal use only, or when creating flog output function
 //! @retval NULL error
-#ifdef FLOG_SRC_INFO
-FLOG_MSG_T * create_flog_msg_t(const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text)
-#else
-FLOG_MSG_T * create_flog_msg_t(FLOG_MSG_TYPE_T type,const char *subsystem,const char *text)
+FLOG_MSG_T * create_flog_msg_t(const char *subsystem,
+#ifdef FLOG_TIMESTAMP
+                               FLOG_TIMESTAMP_T time,
 #endif
+#ifdef FLOG_SRC_INFO
+                               const char *src_file,int src_line,const char *src_func,
+#endif
+                               FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text)
 {
-	if(text==NULL)
+#ifndef FLOG_ALLOW_NULL_MESSAGES
+	if((!msg_id)&&(text==NULL))
 		return(NULL);
+#endif
 	FLOG_MSG_T *p;
 	if((p=malloc(sizeof(FLOG_MSG_T)))!=NULL) {
 		init_flog_msg_t(p);
+		p->type=type;
+		if((subsystem != NULL) && (strlen(subsystem)>0)) {
+			if((p->subsystem=strdup(subsystem))==NULL) {
+			//if(asprintf(&p->subsystem,subsystem)==-1) {
+				destroy_flog_msg_t(p);
+				return(NULL);
+			}
+		}
 #ifdef FLOG_TIMESTAMP
-		p->time=0; //TODO
+		p->time=time;
 #endif
 #ifdef FLOG_SRC_INFO
 		if((src_file != NULL) && (strlen(src_file)>0)) {
-			if(asprintf(&p->src_file,src_file)==-1) {
+			if((p->src_file=strdup(src_file))==NULL) {
+			//if(asprintf(&p->src_file,src_file)==-1) {
 				destroy_flog_msg_t(p);
 				return(NULL);
 			}
 		}
 		p->src_line=src_line;
 		if((src_func != NULL) && (strlen(src_func)>0)) {
-			if(asprintf(&p->src_func,src_func)==-1) {
+			if((p->src_func=strdup(src_func))==NULL) {
+			//if(asprintf(&p->src_func,src_func)==-1) {
 				destroy_flog_msg_t(p);
 				return(NULL);
 			}
 		}
 #endif
-		p->type=type;
-		if((subsystem != NULL) && (strlen(subsystem)>0)) {
-			if(asprintf(&p->subsystem,subsystem)==-1) {
+		p->msg_id=msg_id;
+		if(text!=NULL) {
+			if((p->text=strdup(text))==NULL) {
+			//if(asprintf(&p->text,text)==-1) {
 				destroy_flog_msg_t(p);
 				return(NULL);
 			}
 		}
-		if(asprintf(&p->text,text)==-1) {
-			destroy_flog_msg_t(p);
-			return(NULL);
-		}
 	}
 	return(p);
 }
+
 
 //! free a FLOG_MSG_T
 
@@ -86,35 +103,38 @@ FLOG_MSG_T * create_flog_msg_t(FLOG_MSG_TYPE_T type,const char *subsystem,const 
 void destroy_flog_msg_t(FLOG_MSG_T *p)
 {
 	if(p!=NULL) {
+		free(p->subsystem);
 #ifdef FLOG_SRC_INFO
 		free(p->src_file);
 		free(p->src_func);
 #endif
-		free(p->subsystem);
 		free(p->text);
 		free(p);
 		p=NULL;
 	}
 }
 
+
 //! initialise a FLOG_T to defaults
 
 //! mainly internal use, or when extending flog
 void init_flog_t(FLOG_T *p)
 {
-	p->name=NULL;
+	memset(p,0,sizeof(FLOG_T));
+	//p->name=NULL;
 	p->accepted_msg_type=FLOG_ACCEPT_ALL;
-	p->output_func=NULL;
-	p->output_func_data=NULL;
-	p->output_error=0;
+	//p->output_func=NULL;
+	//p->output_func_data=NULL;
+	//p->output_error=0;
 	p->output_stop_on_error=1;
-	p->error_log=NULL;
-	p->msg=NULL;
-	p->msg_amount=0;
-	p->msg_max=0;
-	p->sublog=NULL;
-	p->sublog_amount=0;
+	//p->error_log=NULL;
+	//p->msg=NULL;
+	//p->msg_amount=0;
+	//p->msg_max=0;
+	//p->sublog=NULL;
+	//p->sublog_amount=0;
 }
+
 
 //! create and return a FLOG_T type
 
@@ -126,7 +146,8 @@ FLOG_T * create_flog_t(const char *name, FLOG_MSG_TYPE_T accepted_msg_type)
 		init_flog_t(p);
 		p->accepted_msg_type=accepted_msg_type;
 		if((name != NULL) && (strlen(name)>0)) {
-			if(asprintf(&p->name,name)==-1) {
+			if((p->name=strdup(name))==NULL) {
+			//if(asprintf(&p->name,name)==-1) {
 				destroy_flog_t(p);
 				return(NULL);
 			}
@@ -134,6 +155,7 @@ FLOG_T * create_flog_t(const char *name, FLOG_MSG_TYPE_T accepted_msg_type)
 	}
 	return(p);
 }
+
 
 //! free a FLOG_T
 void destroy_flog_t(FLOG_T *p)
@@ -152,11 +174,12 @@ void destroy_flog_t(FLOG_T *p)
 	}
 }
 
+
 //! add a FLOG_MSG_T to FLOG_T and do all required logic (used by flog_print[f] functions)
 
 //! internal use only, or when extending flog
-//! @param[out] p target log
-//! @param[in] msg message to add
+//! @param[out] *p target log
+//! @param[in] *msg message to add
 //! @retval 0 success
 int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 {
@@ -167,11 +190,16 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 
 		//create temporary msg to allow reformatting the message
 		FLOG_MSG_T *tmpmsg;
-#ifdef FLOG_SRC_INFO
-		if((tmpmsg=create_flog_msg_t(msg->src_file,msg->src_line,msg->src_func,msg->type,msg->subsystem,msg->text))==NULL)
-#else
-		if((tmpmsg=create_flog_msg_t(msg->type,msg->subsystem,msg->text))==NULL)
+		if((tmpmsg=create_flog_msg_t(msg->subsystem,
+#ifdef FLOG_TIMESTAMP
+		                             msg->time,
 #endif
+#ifdef FLOG_SRC_INFO
+		                             msg->src_file,msg->src_line,msg->src_func,
+#endif
+		                             msg->type,msg->msg_id,msg->text))==NULL)
+			//Cannot allocate memory
+			//! @todo need a way to emit messages without allocating memory
 			return(1);
 
 		//append name to subsystem
@@ -186,15 +214,23 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 
 		if((p->name != NULL) && (tmpmsg->subsystem != NULL)) {
 			char *tmpstr;
-			if(asprintf(&tmpstr,"%s/%s",p->name,tmpmsg->subsystem)!=-1) {
-				free(tmpmsg->subsystem);
-				tmpmsg->subsystem=tmpstr;
+			if(asprintf(&tmpstr,"%s/%s",p->name,tmpmsg->subsystem)==-1) {
+				//Cannot allocate memory
+				destroy_flog_msg_t(tmpmsg);
+				return(1);
+			}
+			free(tmpmsg->subsystem);
+			tmpmsg->subsystem=tmpstr;
+		} else if((p->name != NULL) && (tmpmsg->subsystem == NULL)) {
+			if((tmpmsg->subsystem=strdup(p->name))==NULL) {
+			//asprintf(&tmpmsg->subsystem,p->name);
+				//Cannot allocate memory
+				destroy_flog_msg_t(tmpmsg);
+				return(1);
 			}
 		}
-		else if((p->name != NULL) && (tmpmsg->subsystem == NULL))
-			asprintf(&tmpmsg->subsystem,p->name);
 
-		//add message to buffer
+		//! @todo add message to buffer
 		if(p->msg_amount<p->msg_max) {
 			FLOG_MSG_T **new_msg;
 			if((new_msg=realloc(p->msg,(p->msg_amount+1)*sizeof(FLOG_MSG_T *)))!=NULL) {
@@ -223,6 +259,7 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 	return(e);
 }
 
+
 //! clear all messages stored in log
 void flog_clear_msg_buffer(FLOG_T *p)
 {
@@ -236,17 +273,18 @@ void flog_clear_msg_buffer(FLOG_T *p)
 	}
 }
 
+
 //! add a sublog to a log
 
-//! @param[out] p target log
-//! @param[in] sublog log to add
+//! @param[out] *p target log
+//! @param[in] *sublog log to add
 //! @retval 0 success
 int flog_append_sublog(FLOG_T *p,FLOG_T *sublog)
 {
 	if(p==NULL)
 		return(1);
 	if(p==sublog) {
-		flog_print(p->error_log,FLOG_ERROR,"flog_append_sublog","cannot append log to itself (causes circular dependency)");
+		flog_print(p->error_log,NULL,FLOG_ERROR,0,"cannot append log to itself (causes circular dependency)");
 		return(1);
 	}
 	FLOG_T **new_sublog;
@@ -258,32 +296,41 @@ int flog_append_sublog(FLOG_T *p,FLOG_T *sublog)
 	return(0);
 }
 
+
 //! do not call directly, use the flog_print() macro instead
 
 //! emit an flog message
-//! @param[out] p log to emit message to
-//! @param[in] src_file source code file (flog_print() macro uses __FILE__ to fill this in)
+//! @param[out] *p log to emit message to
+//! @param[in] *subsystem which part of the program is outputing this message
+//! @param[in] *src_file source code file (flog_print() macro uses __FILE__ to fill this in)
 //! @param[in] src_line source code line (flog_print() macro uses __LINE__ to fill this in)
-//! @param[in] src_func source code function (flog_print() macro uses __FUNCTION__ to fill this in)
+//! @param[in] *src_func source code function (flog_print() macro uses __FUNCTION__ to fill this in)
 //! @param[in] type use one of the FLOG_* defines
-//! @param[in] subsystem which part of the program is outputing this message
-//! @param[in] text message text
+//! @param[in] msg_id optionally use one of the FLOG_MSG_* defines
+//! @param[in] *text message text
 //! @retval 0 success
 //! @see flog_print()
+int _flog_print(FLOG_T *p,const char *subsystem,
 #ifdef FLOG_SRC_INFO
-int _flog_print(FLOG_T *p,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text)
-#else
-int _flog_print(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text)
+                const char *src_file,int src_line,const char *src_func,
 #endif
+                FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text)
 {
 	if(p==NULL)
 		return(1);
 	FLOG_MSG_T *msg;
+	if((msg=create_flog_msg_t(subsystem,
+#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_TIMESTAMP_USEC
+//! @todo implement FLOG_TIMESTAMP_USEC support
+#else //FLOG_TIMESTAMP_USEC
+	                          time(NULL),
+#endif //FLOG_TIMESTAMP_USEC
+#endif //FLOG_TIMESTAMP
 #ifdef FLOG_SRC_INFO
-	if((msg=create_flog_msg_t(src_file,src_line,src_func,type,subsystem,text))==NULL)
-#else
-	if((msg=create_flog_msg_t(type,subsystem,text))==NULL)
-#endif
+	                          src_file,src_line,src_func,
+#endif //FLOG_SRC_INFO
+	                          type,msg_id,text))==NULL)
 		return(1);
 	if(flog_add_msg(p,msg)) {
 		destroy_flog_msg_t(msg);
@@ -293,23 +340,25 @@ int _flog_print(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char 
 	return(0);
 }
 
+
 //! do not call directly, use the flog_printf() macro instead
 
 //! emit a formatted flog message (calls _flog_print())
-//! @param[out] p log to emit message to
-//! @param[in] src_file source code file (flog_printf() macro uses __FILE__ to fill this in)
+//! @param[out] *p log to emit message to
+//! @param[in] *subsystem which part of the program is outputing this message
+//! @param[in] *src_file source code file (flog_printf() macro uses __FILE__ to fill this in)
 //! @param[in] src_line source code line (flog_printf() macro uses __LINE__ to fill this in)
-//! @param[in] src_func source code function (flog_printf() macro uses __FUNCTION__ to fill this in)
+//! @param[in] *src_func source code function (flog_printf() macro uses __FUNCTION__ to fill this in)
 //! @param[in] type use one of the FLOG_* defines
-//! @param[in] subsystem which part of the program is outputing this message
-//! @param[in] textf formatted message text
+//! @param[in] msg_id optionally use one of the FLOG_MSG_* defines
+//! @param[in] *textf formatted message text
 //! @retval 0 success
 //! @see flog_printf()
+int _flog_printf(FLOG_T *p,const char *subsystem,
 #ifdef FLOG_SRC_INFO
-int _flog_printf(FLOG_T *p,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *textf, ...)
-#else
-int _flog_printf(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *textf, ...)
+                 const char *src_file,int src_line,const char *src_func,
 #endif
+                 FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *textf, ...)
 {
 	if(p==NULL)
 		return(1);
@@ -320,11 +369,11 @@ int _flog_printf(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char
 		return(1);
 	va_end(ap);
 
+	if(_flog_print(p,subsystem,
 #ifdef FLOG_SRC_INFO
-	if(_flog_print(p,src_file,src_line,src_func,type,subsystem,text)) {
-#else
-	if(_flog_print(p,type,subsystem,text)) {
+	               src_file,src_line,src_func,
 #endif
+	               type,msg_id,text)) {
 		free(text);
 		return(1);
 	}
@@ -332,112 +381,20 @@ int _flog_printf(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char
 	return(0);
 }
 
-//! create and return a string from FLOG_MSG_T type
-
-//! internal use only, or when creating flog output function
-//! @return formatted string built from message
-//! @retval NULL error
-char * flog_msg_t_to_str(const FLOG_MSG_T *p)
-{
-	char *str,*typestr;
-	typestr=flog_get_msg_type_str(p->type);
-#ifdef FLOG_TIMESTAMP
-	//! @todo add timestamp support
-#else
-#ifdef FLOG_SRC_INFO
-	if((p->subsystem != NULL) && (typestr != NULL))
-		asprintf(&str,"[%s:%d|%s() %s] %s%s\n",p->src_file,(int)p->src_line,p->src_func,p->subsystem,typestr,p->text);
-	else if((p->subsystem != NULL) && (typestr == NULL))
-		asprintf(&str,"[%s:%d|%s() %s] %s\n",p->src_file,(int)p->src_line,p->src_func,p->subsystem,p->text);
-	else if((p->subsystem == NULL) && (typestr != NULL))
-		asprintf(&str,"[%s:%d|%s()] %s%s\n",p->src_file,(int)p->src_line,p->src_func,typestr,p->text);
-	else
-		asprintf(&str,"[%s:%d|%s()] %s\n",p->src_file,(int)p->src_line,p->src_func,p->text);
-#else
-	if((p->subsystem != NULL) && (typestr != NULL))
-		asprintf(&str,"[%s] %s%s\n",p->subsystem,typestr,p->text);
-	else if((p->subsystem != NULL) && (typestr == NULL))
-		asprintf(&str,"[%s] %s\n",p->subsystem,p->text);
-	else if((p->subsystem == NULL) && (typestr != NULL))
-		asprintf(&str,"%s%s\n",typestr,p->text);
-	else
-		asprintf(&str,"%s\n",p->text);
-#endif //FLOG_SRC_INFO
-#endif //FLOG_TIMESTAMP
-	free(typestr);
-	return(str);
-}
-
-//! Return a string or NULL according to message type
-
-//! internal use only, or when creating flog output function
-//! @return string used for signifying message type
-//! @retval NULL returned instead of empty string or error
-char * flog_get_msg_type_str(FLOG_MSG_TYPE_T type)
-{
-	int_fast8_t e=-1;
-	char *str=NULL;
-	switch(type)
-	{
-		case FLOG_CRITICAL:
-			e=asprintf(&str,"Critical: ");
-			break;
-		case FLOG_ERROR:
-			e=asprintf(&str,"Error: ");
-			break;
-		case FLOG_WARNING:
-			e=asprintf(&str,"Warning: ");
-			break;
-		case FLOG_NOTIFY:
-			e=asprintf(&str,"!: ");
-			break;
-		case FLOG_INFO:
-			break;
-		case FLOG_VERBOSE:
-			break;
-		case FLOG_DEBUG:
-			e=asprintf(&str,"Debug: ");
-			break;
-		case FLOG_FLOG_DEBUG:
-			e=asprintf(&str,"Flog debug: ");
-			break;
-		default:
-			break;
-	}
-	if(e==-1)
-		str=NULL;
-	return(str);
-}
 
 #ifdef DEBUG
 //! Test various flog features
 void flog_test(FLOG_T *p)
 {
-	flog_printf(p,FLOG_NONE,__func__,"This is a test message with FLOG_NONE (0x%02x) as type - This message should NEVER be visible",FLOG_NONE);
-	flog_printf(p,FLOG_CRIT,__func__,"This is a test message with FLOG_CRIT (0x%02x) as type",FLOG_CRIT);
-	flog_printf(p,FLOG_ERR,__func__,"This is a test message with FLOG_ERR (0x%02x) as type",FLOG_ERR);
-	flog_printf(p,FLOG_WARN,__func__,"This is a test message with FLOG_WARN (0x%02x) as type",FLOG_WARN);
-	flog_printf(p,FLOG_NOTE,__func__,"This is a test message with FLOG_NOTE (0x%02x) as type",FLOG_NOTE);
-	flog_printf(p,FLOG_INFO,__func__,"This is a test message with FLOG_INFO (0x%02x) as type",FLOG_INFO);
-	flog_printf(p,FLOG_VINFO,__func__,"This is a test message with FLOG_VINFO (0x%02x) as type",FLOG_VINFO);
-	flog_printf(p,FLOG_DEBUG,__func__,"This is a test message with FLOG_DEBUG (0x%02x) as type",FLOG_DEBUG);
-	flog_printf(p,FLOG_FLOG_DEBUG,__func__,"This is a test message with FLOG_FLOG_DEBUG (0x%02x) as type - This message should only be visible when debugging the flog library itself",FLOG_FLOG_DEBUG);
-	flog_dprintf(p,FLOG_CRITICAL,__func__,"This is a test message using flog_dprintf() macro with FLOG_CRITICAL (0x%02x) as type",FLOG_CRITICAL);
-}
-#endif
-
-#ifdef FLOG_TIMESTAMP
-//! Return a string with current timestamp in ISO-format
-
-//! @todo this function is probably a memory leak by design :(
-const char * get_timestamp(void)
-{
-	static char str[30];
-	time_t rawtime;
-	struct tm *timeinfo;
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-	sprintf(str,"%04d-%02d-%02d %02d:%02d:%02d",timeinfo->tm_year+1900,timeinfo->tm_mon+1,timeinfo->tm_mday,timeinfo->tm_hour,timeinfo->tm_min,timeinfo->tm_sec);
-	return(str);
+	flog_printf(p,__func__,FLOG_NONE,0,"This is a test message with FLOG_NONE (0x%02x) as type - This message should NEVER be visible",FLOG_NONE);
+	flog_printf(p,__func__,FLOG_CRIT,0,"This is a test message with FLOG_CRIT (0x%02x) as type",FLOG_CRIT);
+	flog_printf(p,__func__,FLOG_ERR,0,"This is a test message with FLOG_ERR (0x%02x) as type",FLOG_ERR);
+	flog_printf(p,__func__,FLOG_WARN,0,"This is a test message with FLOG_WARN (0x%02x) as type",FLOG_WARN);
+	flog_printf(p,__func__,FLOG_NOTE,0,"This is a test message with FLOG_NOTE (0x%02x) as type",FLOG_NOTE);
+	flog_printf(p,__func__,FLOG_INFO,0,"This is a test message with FLOG_INFO (0x%02x) as type",FLOG_INFO);
+	flog_printf(p,__func__,FLOG_VINFO,0,"This is a test message with FLOG_VINFO (0x%02x) as type",FLOG_VINFO);
+	flog_printf(p,__func__,FLOG_DEBUG,0,"This is a test message with FLOG_DEBUG (0x%02x) as type",FLOG_DEBUG);
+	flog_printf(p,__func__,FLOG_DEEP_DEBUG,0,"This is a test message with FLOG_DEEP_DEBUG (0x%02x) as type - This message should only be visible when implicitly switching on deep debugging",FLOG_DEEP_DEBUG);
+	flog_dprintf(p,__func__,FLOG_CRITICAL,0,"This is a test message using flog_dprintf() macro with FLOG_CRITICAL (0x%02x) as type",FLOG_CRITICAL);
 }
 #endif

@@ -1,22 +1,36 @@
+//! Flog - The F logging library
+
 //! @file flog.h
-//! @brief Flog - The F logging library
 //! @author Nabeel Sowan (nabeel.sowan@vibes.se)
 //!
-//! Useful as the main logger of a program
-//! Requires C99 support
+//! Useful as the main logger of a program or embedded system.
+//! Requires C99 + GNU support
+
 
 #ifndef FLOG_H
 #define FLOG_H
 
+//! We need asprintf() for flog.c and flog_string.c
+#define _GNU_SOURCE
+
+#include "config.h"
+#include "flog_msg_id.h"
 #include <stdint.h>
 
-//Always define FLOG_SRC_INFO if debug build
-#ifdef DEBUG
-#define FLOG_SRC_INFO
-#endif
+#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_TIMESTAMP_USEC
+#include <sys/time.h>
+#include <time.h>
+typedef struct timeval FLOG_TIMESTAMP_T;
+#else //FLOG_TIMESTAMP_USEC
+#include <time.h>
+typedef time_t FLOG_TIMESTAMP_T;
+#endif //FLOG_TIMESTAMP_USEC
+#endif //FLOG_TIMESTAMP
+
 
 /* FLOG_MSG_TYPE_ENUM_API allows switching to an enum API for flog.
-What this means is that FLOG_MSG_TYPE_T will be defined as an int 
+What this means is that FLOG_MSG_TYPE_T will be defined as an int
 (instead of unsigned char) In return, enums may yield stronger
 type checking and therefore easier debugging. */
 
@@ -25,45 +39,47 @@ type checking and therefore easier debugging. */
 typedef enum flog_msg_type {
 	FLOG_NONE        = 0x00,
 	FLOG_NOTHING     = FLOG_NONE,
-	
+
 	FLOG_CRIT        = 0x01,
 	FLOG_CRITICAL    = FLOG_CRIT,
-	
+
 	FLOG_ERR         = 0x02,
 	FLOG_ERROR       = FLOG_ERR,
-	
+
 	FLOG_WARN        = 0x04,
 	FLOG_WARNING     = FLOG_WARN,
 	FLOG_ALERT       = FLOG_WARN,
-	
+
 	FLOG_NOTE        = 0x08,
 	FLOG_NOTIFY      = FLOG_NOTE,
 	FLOG_IMP         = FLOG_NOTE,
 	FLOG_IMPORTANT   = FLOG_NOTE,
-	
+
 	FLOG_INFO        = 0x10,
 	FLOG_INFORMATION = FLOG_INFO,
 	FLOG_MSG         = FLOG_INFO,
 	FLOG_MESSAGE     = FLOG_INFO,
-	
+
 	FLOG_VINFO       = 0x20,
 	FLOG_VERBOSE     = FLOG_VINFO,
-	
+
 	FLOG_DEBUG       = 0x40,
-	
-	FLOG_FLOG_DEBUG  = 0x80,
-	
+
+	FLOG_DEEP_DEBUG  = 0x80,
+
 	FLOG_ACCEPT_ONLY_CRITICAL     = FLOG_CRIT,
 	FLOG_ACCEPT_ONLY_ERROR        = FLOG_CRIT | FLOG_ERR,
 	FLOG_ACCEPT_ERROR_AND_WARNING = FLOG_CRIT | FLOG_ERR | FLOG_WARN,
 	FLOG_ACCEPT_IMPORTANT_NOTES   = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE,
 	FLOG_ACCEPT_INFO              = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO,
 	FLOG_ACCEPT_VERBOSE_INFO      = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO,
-	FLOG_ACCEPT_ALL               = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG,
-	FLOG_ACCEPT_FLOG_DEBUG        = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG | FLOG_FLOG_DEBUG
+	FLOG_ACCEPT_DEBUG             = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG,
+	FLOG_ACCEPT_DEEP_DEBUG        = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG | FLOG_DEEP_DEBUG,
+	FLOG_ACCEPT_ALL               = FLOG_ACCEPT_DEBUG
 } FLOG_MSG_TYPE_T;
 
 #else /* FLOG_MSG_TYPE_ENUM_API */
+
 
 //! @addtogroup FLOG_MSG_TYPE_T
 //! @brief Types of messages supported by FLOG
@@ -108,8 +124,8 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 //! Debug info
 #define FLOG_DEBUG        0x40
 
-//! Debug info for flog itself
-#define FLOG_FLOG_DEBUG   0x80
+//! Deep debug info (such as when functions are started etc. )
+#define FLOG_DEEP_DEBUG   0x80
 
 //! @}
 
@@ -131,17 +147,21 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 #define FLOG_ACCEPT_INFO              FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO
 //! Bitmask to accept verbose messages
 #define FLOG_ACCEPT_VERBOSE_INFO      FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO
-//! Bitmask to accept all messages (except flog internal debug)
-#define FLOG_ACCEPT_ALL               FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG
+//! Bitmask to accept all messages (except deep debug)
+#define FLOG_ACCEPT_DEBUG             FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG
 //! Bitmask to accept all messages
-#define FLOG_ACCEPT_FLOG_DEBUG        FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG | FLOG_FLOG_DEBUG
+#define FLOG_ACCEPT_DEEP_DEBUG        FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG | FLOG_DEEP_DEBUG
+//! Bitmask to accept all messages (except deep debug)
+#define FLOG_ACCEPT_ALL               FLOG_ACCEPT_DEBUG
 
 //! @}
 
 #endif /* FLOG_MSG_TYPE_ENUM_API */
 
+
 // Macros to insert source info into print strings
 // Maybe it is better to use __func__ than __FUNCTION__ ?
+
 
 //! emit an flog message
 
@@ -153,10 +173,11 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 //! @retval 0 success
 //! @see _flog_print(), flog_printf(), flog_dprint()
 #ifdef FLOG_SRC_INFO
-#define flog_print(p, type, subsystem, text) _flog_print(p,__FILE__,__LINE__,__FUNCTION__,type,subsystem,text)
+#define flog_print(p, subsystem, type, msg_id, text) _flog_print(p,subsystem,__FILE__,__LINE__,__FUNCTION__,type,msg_id,text)
 #else
-#define flog_print(p, type, subsystem, text) _flog_print(p,type,subsystem,text)
+#define flog_print(p, subsystem, type, msg_id, text) _flog_print(p,subsystem,type,msg_id,text)
 #endif
+
 
 //! emit a formatted flog message (calls flog_print())
 
@@ -168,30 +189,33 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 //! @retval 0 success
 //! @see _flog_printf(), flog_print(), flog_dprintf()
 #ifdef FLOG_SRC_INFO
-#define flog_printf(p, type, subsystem, ...) _flog_printf(p,__FILE__,__LINE__,__FUNCTION__,type,subsystem,__VA_ARGS__)
+#define flog_printf(p, subsystem, type, msg_id, ...) _flog_printf(p,subsystem,__FILE__,__LINE__,__FUNCTION__,type,msg_id,__VA_ARGS__)
 #else
-#define flog_printf(p, type, subsystem, ...) _flog_printf(p,type,subsystem,__VA_ARGS__)
+#define flog_printf(p, subsystem, type, msg_id, ...) _flog_printf(p,subsystem,type,msg_id,__VA_ARGS__)
 #endif
+
 
 //! Same as flog_print() but only defined if DEBUG is set
 
 //! Use this macro to allow removal of messages from release builds
 //! @see flog_print()
 #ifdef DEBUG
-#define flog_dprint(p, type, subsystem, text) flog_print(p,type,subsystem,text)
+#define flog_dprint(p, subsystem, type, msg_id, text) flog_print(p,subsystem,type,msg_id,text)
 #else
-#define flog_dprint(p, type, subsystem, text)
+#define flog_dprint(p, subsystem, type, msg_id, text)
 #endif
+
 
 //! Same as flog_printf() but only defined if DEBUG is set
 
 //! Use this macro to allow removal of messages from release builds
 //! @see flog_printf()
 #ifdef DEBUG
-#define flog_dprintf(p, type, subsystem, ...) flog_printf(p,type,subsystem,__VA_ARGS__)
+#define flog_dprintf(p, subsystem, type, msg_id, ...) flog_printf(p,subsystem,type,msg_id,__VA_ARGS__)
 #else
-#define flog_dprintf(p, type, subsystem, ...)
+#define flog_dprintf(p, subsystem, type, msg_id, ...)
 #endif
+
 
 //! Macro for flog assert functionality
 
@@ -201,7 +225,7 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 #define flog_assert(p, cond) \
 { \
 	if(!(cond)) { \
-		flog_printf(p,FLOG_ERROR,"assert","Assertion failed: %s",#cond); \
+		flog_printf(p,NULL,FLOG_ERROR,FLOG_MSG_ASSERTION_FAILED,#cond); \
 		abort(); \
 	} \
 }
@@ -209,13 +233,10 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 #define flog_assert(p, cond) \
 { \
 	if(!(cond)) \
-		flog_printf(p,FLOG_ERROR,"assert","Assertion failed: %s",#cond); \
+		flog_printf(p,NULL,FLOG_ERROR,FLOG_MSG_ASSERTION_FAILED,#cond); \
 }
 #endif
 
-#ifdef FLOG_TIMESTAMP
-typedef int FLOG_TIMESTAMP_T;
-#endif
 
 //! Message structure - Holds all data related to a single message
 typedef struct {
@@ -227,10 +248,12 @@ typedef struct {
 	uint_fast16_t src_line;                 //!< source line number emitting message
 	char *src_func;                         //!< source function emitting message
 #endif
-	FLOG_MSG_TYPE_T type;                   //!< type of message
 	char *subsystem;                        //!< subsystem which is outputting the msg
-	char *text;                             //!< message contents
+	FLOG_MSG_TYPE_T type;                   //!< type of message
+	FLOG_MSG_ID_T msg_id;                   //!< message id (instead of, or with text) see flog_msg_id.h
+	char *text;                             //!< message text
 } FLOG_MSG_T;
+
 
 //! Main log structure - typedefined as @ref FLOG_T
 
@@ -252,12 +275,18 @@ typedef struct flog_t {
 	uint_fast8_t sublog_amount;             //!< amount of sublogs in array
 } FLOG_T;
 
+
 void init_flog_msg_t(FLOG_MSG_T *p);
-#ifdef FLOG_SRC_INFO
-FLOG_MSG_T * create_flog_msg_t(const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T msg_type,const char *subsystem,const char *text);
-#else
-FLOG_MSG_T * create_flog_msg_t(FLOG_MSG_TYPE_T msg_type,const char *subsystem,const char *text);
+
+FLOG_MSG_T * create_flog_msg_t(const char *subsystem,
+#ifdef FLOG_TIMESTAMP
+                               FLOG_TIMESTAMP_T time,
 #endif
+#ifdef FLOG_SRC_INFO
+                               const char *src_file,int src_line,const char *src_func,
+#endif
+                               FLOG_MSG_TYPE_T msg_type,FLOG_MSG_ID_T msg_id,const char *text);
+
 void destroy_flog_msg_t(FLOG_MSG_T *p);
 
 void init_flog_t(FLOG_T *p);
@@ -269,19 +298,15 @@ void flog_clear_msg_buffer(FLOG_T *p);
 int flog_append_sublog(FLOG_T *p,FLOG_T *sublog);
 
 #ifdef FLOG_SRC_INFO
-int _flog_print(FLOG_T *p,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text);
-int _flog_printf(FLOG_T *p,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,const char *subsystem,const char *textf, ...);
+int _flog_print(FLOG_T *p,const char *subsystem,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text);
+int _flog_printf(FLOG_T *p,const char *subsystem,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *textf, ...);
 #else
-int _flog_print(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *text);
-int _flog_printf(FLOG_T *p,FLOG_MSG_TYPE_T type,const char *subsystem,const char *textf, ...);
+int _flog_print(FLOG_T *p,const char *subsystem,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text);
+int _flog_printf(FLOG_T *p,const char *subsystem,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *textf, ...);
 #endif
 
-char * flog_msg_t_to_str(const FLOG_MSG_T *p);
-char * flog_get_msg_type_str(FLOG_MSG_TYPE_T type);
+#ifdef DEBUG
 void flog_test(FLOG_T *p);
-
-#ifdef FLOG_TIMESTAMP
-const char * get_timestamp(void);
 #endif
 
 #endif
