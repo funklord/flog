@@ -49,14 +49,6 @@
 #define FLOG_SRC_INFO
 
 
-//! @def FLOG_MSG_ID_STRINGS
-//! If FLOG_MSG_ID_STRINGS is defined then the FLOG_MSG_ID string
-//! data will be included. This can be omitted for deeply embedded
-//! systems where string generation isn't strictly necessary,
-//! and can be decoded by the receiver.
-#define FLOG_MSG_ID_STRINGS
-
-
 //! @def FLOG_STRING_HANDLING
 //! If FLOG_STRING_HANDLING is defined then string handling routines
 //! will be included in the flog_string module. Omitting this will
@@ -64,6 +56,14 @@
 //! cases where a deeply embedded system should only transmit flog
 //! messages in binary form over a network.
 #define FLOG_STRING_HANDLING
+
+
+//! @def FLOG_MSG_ID_STRINGS
+//! If FLOG_MSG_ID_STRINGS is defined then the FLOG_MSG_ID string
+//! data will be included. This can be omitted for deeply embedded
+//! systems where string generation isn't strictly necessary,
+//! and can be decoded by the receiver.
+#define FLOG_MSG_ID_STRINGS
 
 
 //! @def FLOG_ERRNO_STRINGS

@@ -21,9 +21,6 @@
 //! Built in message ids, these are used internally by flog
 #define FLOG_MSG_IDS_BUILTIN \
 X(FLOG_MSG_MARK,                   "mark"                  ) \
-X(FLOG_MSG_WARNING,                "warning"               ) \
-X(FLOG_MSG_ERROR,                  "error"                 ) \
-X(FLOG_MSG_CANNOT_ALLOCATE_MEMORY, "cannot allocate memory") \
 X(FLOG_MSG_ASSERTION_FAILED,       "assertion failed"      )
 
 

@@ -14,9 +14,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifdef FLOG_TIMESTAMP
 #include <time.h>
+
 
 //! Create a string with timestamp in ISO-format
 
@@ -84,9 +86,11 @@ int flog_get_str_msg_type(char **strp, const FLOG_MSG_TYPE_T type)
 	return(0);
 }
 
+
 #ifdef FLOG_MSG_ID_STRINGS
 extern const char *flog_msg_id_str[];
 #endif //FLOG_MSG_ID_STRINGS
+
 
 //! Create a string from FLOG_MSG_ID
 
@@ -98,8 +102,9 @@ int flog_get_str_msg_id(char **strp, const FLOG_MSG_ID_T msg_id)
 	*strp=NULL;
 	if(msg_id==0)
 		return(0);
-	if(msg_id>FLOG_MSG_ID_AMOUNT_RESERVED_FOR_ERRNO) {
+	if(msg_id>=FLOG_MSG_ID_AMOUNT_RESERVED_FOR_ERRNO) {
 #ifdef FLOG_MSG_ID_STRINGS
+		//! @todo we need to run toupper() on the first char of the message (maybe another function?)
 #ifdef FLOG_MSG_ID_OUTPUT_SHOW_ID
 		if(asprintf(strp,"(%d) %s", msg_id, flog_msg_id_str[msg_id-FLOG_MSG_ID_AMOUNT_RESERVED_FOR_ERRNO])==-1) {
 			*strp=NULL;

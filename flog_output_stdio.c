@@ -15,6 +15,9 @@
 #include <stdio.h>
 
 
+//! Output function for log output to stdout
+
+//! @retval 0 success
 int flog_output_stdout(FLOG_T *log,const FLOG_MSG_T *msg)
 {
 	char *str;
@@ -31,6 +34,9 @@ int flog_output_stdout(FLOG_T *log,const FLOG_MSG_T *msg)
 }
 
 
+//! Output function for log output to stderr
+
+//! @retval 0 success
 int flog_output_stderr(FLOG_T *log,const FLOG_MSG_T *msg)
 {
 	char *str;
@@ -71,5 +77,6 @@ FLOG_T * create_flog_output_stderr(const char *name, FLOG_MSG_TYPE_T accepted_ms
 	p->output_func=flog_output_stderr;
 	return(p);
 }
+
 
 #endif //FLOG_OUTPUT_STDIO

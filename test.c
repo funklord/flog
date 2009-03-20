@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <errno.h>
 
+
 int main(void)
 {
 	FLOG_T *log_main,*log_subfunc;
@@ -37,7 +38,7 @@ int main(void)
 	flog_print(log_subfunc,"print_test",FLOG_ERROR,0,"testing...");
 	flog_printf(log_subfunc,"printf_test",FLOG_INFO,0,"testing... %d %d %d",1,2,3);
 
-	flog_print(log_subfunc,NULL,FLOG_ERROR,FLOG_MSG_CANNOT_ALLOCATE_MEMORY,NULL);
+	flog_print(log_subfunc,NULL,FLOG_ERROR,FLOG_MSG_MARK,NULL);
 	flog_print(log_subfunc,NULL,FLOG_ERROR,ENOMEM,NULL);
 
 	flog_assert(log_subfunc,1+1);

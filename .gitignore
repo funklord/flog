@@ -1,0 +1,5 @@
+*.[oa]
+doxygen/*
+*~
+*.log
+test

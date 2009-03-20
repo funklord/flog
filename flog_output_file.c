@@ -17,6 +17,10 @@
 #include <string.h>
 
 
+//! Output function for simple log output to a file
+//! filename is stored in log.output_func_data as a string
+
+//! @retval 0 success
 int flog_output_file(FLOG_T *log,const FLOG_MSG_T *msg)
 {
 	if(log->output_func_data==NULL) {

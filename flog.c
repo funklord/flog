@@ -318,6 +318,8 @@ int _flog_print(FLOG_T *p,const char *subsystem,
 {
 	if(p==NULL)
 		return(1);
+	//! @todo We need to stop wasting time and filter here already (like adding a function to parse the
+	//! log tree to find whether or not the message goes to an output function/buffer or to /dev/null :)
 	FLOG_MSG_T *msg;
 	if((msg=create_flog_msg_t(subsystem,
 #ifdef FLOG_TIMESTAMP
@@ -362,6 +364,8 @@ int _flog_printf(FLOG_T *p,const char *subsystem,
 {
 	if(p==NULL)
 		return(1);
+	//! @todo We need to stop wasting time and filter here already (like adding a function to parse the
+	//! log tree to find whether or not the message goes to an output function/buffer or to /dev/null :)
 	char *text;
 	va_list ap;
 	va_start(ap,textf);
