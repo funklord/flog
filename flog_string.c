@@ -8,7 +8,7 @@
 
 #include "flog_string.h"
 
-#ifdef FLOG_STRING_HANDLING
+#ifdef FLOG_CONFIG_STRING_OUTPUT
 
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -211,7 +211,7 @@ int flog_get_str_message_header(char **strp, const FLOG_MSG_T *p)
 	*strp=NULL;
 #ifdef FLOG_TIMESTAMP
 	char *str_timestamp;
-	if(flog_get_str_iso_timestamp(&str_timestamp, p->time))
+	if(flog_get_str_iso_timestamp(&str_timestamp, p->timestamp))
 		return(-1);
 #endif
 #ifdef FLOG_SRC_INFO
@@ -469,4 +469,4 @@ char * flog_msg_t_to_str(const FLOG_MSG_T *p)
 }
 */
 
-#endif //FLOG_STRING_HANDLING
+#endif //FLOG_CONFIG_STRING_OUTPUT

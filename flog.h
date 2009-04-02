@@ -29,12 +29,7 @@ typedef time_t FLOG_TIMESTAMP_T;
 #endif //FLOG_TIMESTAMP
 
 
-/* FLOG_MSG_TYPE_ENUM_API allows switching to an enum API for flog.
-What this means is that FLOG_MSG_TYPE_T will be defined as an int
-(instead of unsigned char) In return, enums may yield stronger
-type checking and therefore easier debugging. */
-
-#ifdef FLOG_MSG_TYPE_ENUM_API
+#ifdef FLOG_CONFIG_MSG_TYPE_ENUM_API
 
 typedef enum flog_msg_type {
 	FLOG_NONE        = 0x00,
@@ -78,7 +73,7 @@ typedef enum flog_msg_type {
 	FLOG_ACCEPT_ALL               = FLOG_ACCEPT_DEBUG
 } FLOG_MSG_TYPE_T;
 
-#else /* FLOG_MSG_TYPE_ENUM_API */
+#else //FLOG_CONFIG_MSG_TYPE_ENUM_API
 
 
 //! @addtogroup FLOG_MSG_TYPE_T
@@ -156,7 +151,7 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 
 //! @}
 
-#endif /* FLOG_MSG_TYPE_ENUM_API */
+#endif //FLOG_CONFIG_MSG_TYPE_ENUM_API
 
 
 // Macros to insert source info into print strings
@@ -166,7 +161,7 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 //! emit an flog message
 
 //! use this when you need to emit simple text messages and flog_printf() when formatting is needed
-//! @param[out] p log to emit message to
+//! @param[in,out] p log to emit message to
 //! @param[in] type use one of the FLOG_* defines
 //! @param[in] subsystem which part of the program is outputing this message
 //! @param[in] text message text
@@ -182,7 +177,7 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 //! emit a formatted flog message (calls flog_print())
 
 //! use this when you need to emit formatted text messages and flog_print() when no formatting is needed
-//! @param[out] p log to emit message to
+//! @param[in,out] p log to emit message to
 //! @param[in] type use one of the FLOG_* defines
 //! @param[in] subsystem which part of the program is outputing this message
 //! @param[in] ... formatted message text
@@ -219,7 +214,7 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 
 //! Macro for flog assert functionality
 
-//! @param[out] p log to emit message to
+//! @param[in,out] p log to emit message to
 //! @param[in] cond statement to evaluate
 #ifdef FLOG_ABORT_ON_ASSERT
 #define flog_assert(p, cond) \
@@ -240,15 +235,15 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 
 //! Message structure - Holds all data related to a single message
 typedef struct {
+	char *subsystem;                        //!< subsystem which is outputting the msg
 #ifdef FLOG_TIMESTAMP
-	FLOG_TIMESTAMP_T time;                  //!< timestamp
+	FLOG_TIMESTAMP_T timestamp;             //!< timestamp
 #endif
 #ifdef FLOG_SRC_INFO
 	char *src_file;                         //!< source file emitting message
 	uint_fast16_t src_line;                 //!< source line number emitting message
 	char *src_func;                         //!< source function emitting message
 #endif
-	char *subsystem;                        //!< subsystem which is outputting the msg
 	FLOG_MSG_TYPE_T type;                   //!< type of message
 	FLOG_MSG_ID_T msg_id;                   //!< message id (instead of, or with text) see flog_msg_id.h
 	char *text;                             //!< message text
@@ -280,7 +275,7 @@ void init_flog_msg_t(FLOG_MSG_T *p);
 
 FLOG_MSG_T * create_flog_msg_t(const char *subsystem,
 #ifdef FLOG_TIMESTAMP
-                               FLOG_TIMESTAMP_T time,
+                               FLOG_TIMESTAMP_T timestamp,
 #endif
 #ifdef FLOG_SRC_INFO
                                const char *src_file,int src_line,const char *src_func,

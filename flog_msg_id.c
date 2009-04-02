@@ -11,7 +11,7 @@
 
 #include "flog_msg_id.h"
 
-#ifdef FLOG_STRING_HANDLING
+#ifdef FLOG_CONFIG_STRING_OUTPUT
 #ifdef FLOG_MSG_ID_STRINGS
 #define X(id, str) str,
 const char *flog_msg_id_str[] = {
@@ -20,4 +20,4 @@ const char *flog_msg_id_str[] = {
 };
 #undef X
 #endif //FLOG_MSG_ID_STRINGS
-#endif //FLOG_STRING_HANDLING
+#endif //FLOG_CONFIG_STRING_OUTPUT

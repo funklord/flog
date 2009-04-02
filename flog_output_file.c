@@ -64,7 +64,7 @@ FLOG_T * create_flog_output_file(const char *name, FLOG_MSG_TYPE_T accepted_msg_
 	if((p=create_flog_t(name,accepted_msg_type))==NULL)
 		return(NULL);
 	p->output_func=flog_output_file;
-	if((filename != NULL) && (strlen(filename)>0)) {
+	if(filename && filename[0]) {
 		if((p->output_func_data=strdup(filename))==NULL) {
 			destroy_flog_t(p);
 			return(NULL);

@@ -20,8 +20,8 @@
 
 //! Built in message ids, these are used internally by flog
 #define FLOG_MSG_IDS_BUILTIN \
-X(FLOG_MSG_MARK,                   "mark"                  ) \
-X(FLOG_MSG_ASSERTION_FAILED,       "assertion failed"      )
+X(FLOG_MSG_MARK,                   "Mark"                  ) \
+X(FLOG_MSG_ASSERTION_FAILED,       "Assertion failed"      )
 
 
 //! Common message ids, used by the various output modules
