@@ -8,7 +8,7 @@
 
 #include "flog_output_stdio.h"
 
-#ifdef FLOG_OUTPUT_STDIO
+#ifdef FLOG_CONFIG_OUTPUT_STDIO
 
 #include "flog_string.h"
 #include <stdlib.h>
@@ -79,4 +79,4 @@ FLOG_T * create_flog_output_stderr(const char *name, FLOG_MSG_TYPE_T accepted_ms
 }
 
 
-#endif //FLOG_OUTPUT_STDIO
+#endif //FLOG_CONFIG_OUTPUT_STDIO

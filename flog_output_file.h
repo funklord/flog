@@ -12,12 +12,12 @@
 
 #include "flog.h"
 
-#ifdef FLOG_OUTPUT_FILE
+#ifdef FLOG_CONFIG_OUTPUT_FILE
 
 int flog_output_file(FLOG_T *log,const FLOG_MSG_T *msg);
 FLOG_T * create_flog_output_file(const char *name, FLOG_MSG_TYPE_T accepted_msg_type, const char *filename);
 void destroy_flog_output_file(FLOG_T *p);
 
-#endif //FLOG_OUTPUT_FILE
+#endif //FLOG_CONFIG_OUTPUT_FILE
 
 #endif //FLOG_OUTPUT_FILE_H

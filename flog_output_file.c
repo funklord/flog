@@ -9,7 +9,7 @@
 
 #include "flog_output_file.h"
 
-#ifdef FLOG_OUTPUT_FILE
+#ifdef FLOG_CONFIG_OUTPUT_FILE
 
 #include "flog_string.h"
 #include <stdlib.h>
@@ -85,4 +85,4 @@ void destroy_flog_output_file(FLOG_T *p)
 }
 
 
-#endif //FLOG_OUTPUT_FILE
+#endif //FLOG_CONFIG_OUTPUT_FILE

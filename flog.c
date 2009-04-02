@@ -21,10 +21,10 @@
 void init_flog_msg_t(FLOG_MSG_T *p)
 {
 	memset(p,0,sizeof(FLOG_MSG_T));
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 	//p->time=0;
 #endif
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
 	//p->src_file=NULL;
 	p->src_line=-1;
 	//p->src_func=NULL;
@@ -41,10 +41,10 @@ void init_flog_msg_t(FLOG_MSG_T *p)
 //! internal use only, or when creating flog output function
 //! @retval NULL error
 FLOG_MSG_T * create_flog_msg_t(const char *subsystem,
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
                                FLOG_TIMESTAMP_T timestamp,
 #endif
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
                                const char *src_file,int src_line,const char *src_func,
 #endif
                                FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text)
@@ -59,10 +59,10 @@ FLOG_MSG_T * create_flog_msg_t(const char *subsystem,
 				return(NULL);
 			}
 		}
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 		p->timestamp=timestamp;
 #endif
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
 		if(src_file && src_file[0]) {
 			if((p->src_file=strdup(src_file))==NULL) {
 				destroy_flog_msg_t(p);
@@ -96,7 +96,7 @@ void destroy_flog_msg_t(FLOG_MSG_T *p)
 {
 	if(p) {
 		free(p->subsystem);
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
 		free(p->src_file);
 		free(p->src_func);
 #endif
@@ -209,8 +209,9 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 		}
 	}*/
 
-	int e;
 	//! @todo invent a suitable error output strategy
+	int e=0;
+
 	//run output function
 	if(p->output_func) {
 		if(p->output_stop_on_error ? !p->output_error : 1) {
@@ -309,7 +310,7 @@ int flog_is_message_used(FLOG_T *p,FLOG_MSG_TYPE_T type)
 //! @retval 0 success
 //! @see flog_print()
 int _flog_print(FLOG_T *p,const char *subsystem,
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
                 const char *src_file,int src_line,const char *src_func,
 #endif
                 FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text)
@@ -336,14 +337,14 @@ int _flog_print(FLOG_T *p,const char *subsystem,
 	if(subsystem && subsystem[0])
 #endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
 		msg.subsystem = subsystem;
-#ifdef FLOG_TIMESTAMP
-#ifdef FLOG_TIMESTAMP_USEC
-//! @todo implement FLOG_TIMESTAMP_USEC support
-#else //FLOG_TIMESTAMP_USEC
+#ifdef FLOG_CONFIG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP_USEC
+//! @todo implement FLOG_CONFIG_TIMESTAMP_USEC support
+#else //FLOG_CONFIG_TIMESTAMP_USEC
 	msg.timestamp = time(NULL);
-#endif //FLOG_TIMESTAMP_USEC
-#endif //FLOG_TIMESTAMP
-#ifdef FLOG_SRC_INFO
+#endif //FLOG_CONFIG_TIMESTAMP_USEC
+#endif //FLOG_CONFIG_TIMESTAMP
+#ifdef FLOG_CONFIG_SRC_INFO
 #ifdef FLOG_CONFIG_EMPTY_STRING_TO_NULL
 	if(src_file && src_file[0])
 #endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
@@ -353,7 +354,7 @@ int _flog_print(FLOG_T *p,const char *subsystem,
 	if(src_func && src_func[0])
 #endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
 		msg.src_func = src_func;
-#endif //FLOG_SRC_INFO
+#endif //FLOG_CONFIG_SRC_INFO
 	msg.type = type;
 	msg.msg_id = msg_id;
 #ifdef FLOG_CONFIG_EMPTY_STRING_TO_NULL
@@ -383,7 +384,7 @@ int _flog_print(FLOG_T *p,const char *subsystem,
 //! @retval 0 success
 //! @see flog_printf()
 int _flog_printf(FLOG_T *p,const char *subsystem,
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
                  const char *src_file,int src_line,const char *src_func,
 #endif
                  FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *textf, ...)
@@ -418,14 +419,14 @@ int _flog_printf(FLOG_T *p,const char *subsystem,
 	if(subsystem && subsystem[0])
 #endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
 		msg.subsystem = subsystem;
-#ifdef FLOG_TIMESTAMP
-#ifdef FLOG_TIMESTAMP_USEC
-//! @todo implement FLOG_TIMESTAMP_USEC support
-#else //FLOG_TIMESTAMP_USEC
+#ifdef FLOG_CONFIG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP_USEC
+//! @todo implement FLOG_CONFIG_TIMESTAMP_USEC support
+#else //FLOG_CONFIG_TIMESTAMP_USEC
 	msg.timestamp = time(NULL);
-#endif //FLOG_TIMESTAMP_USEC
-#endif //FLOG_TIMESTAMP
-#ifdef FLOG_SRC_INFO
+#endif //FLOG_CONFIG_TIMESTAMP_USEC
+#endif //FLOG_CONFIG_TIMESTAMP
+#ifdef FLOG_CONFIG_SRC_INFO
 #ifdef FLOG_CONFIG_EMPTY_STRING_TO_NULL
 	if(src_file && src_file[0])
 #endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
@@ -435,7 +436,7 @@ int _flog_printf(FLOG_T *p,const char *subsystem,
 	if(src_func && src_func[0])
 #endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
 		msg.src_func = src_func;
-#endif //FLOG_SRC_INFO
+#endif //FLOG_CONFIG_SRC_INFO
 	msg.type = type;
 
 	//Add message to log

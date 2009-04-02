@@ -12,12 +12,12 @@
 #include "flog_msg_id.h"
 
 #ifdef FLOG_CONFIG_STRING_OUTPUT
-#ifdef FLOG_MSG_ID_STRINGS
+#ifdef FLOG_CONFIG_MSG_ID_STRINGS
 #define X(id, str) str,
 const char *flog_msg_id_str[] = {
 	FLOG_MSG_IDS
 	0
 };
 #undef X
-#endif //FLOG_MSG_ID_STRINGS
+#endif //FLOG_CONFIG_MSG_ID_STRINGS
 #endif //FLOG_CONFIG_STRING_OUTPUT

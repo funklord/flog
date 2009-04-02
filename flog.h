@@ -17,16 +17,16 @@
 #include "flog_msg_id.h"
 #include <stdint.h>
 
-#ifdef FLOG_TIMESTAMP
-#ifdef FLOG_TIMESTAMP_USEC
+#ifdef FLOG_CONFIG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP_USEC
 #include <sys/time.h>
 #include <time.h>
 typedef struct timeval FLOG_TIMESTAMP_T;
-#else //FLOG_TIMESTAMP_USEC
+#else //FLOG_CONFIG_TIMESTAMP_USEC
 #include <time.h>
 typedef time_t FLOG_TIMESTAMP_T;
-#endif //FLOG_TIMESTAMP_USEC
-#endif //FLOG_TIMESTAMP
+#endif //FLOG_CONFIG_TIMESTAMP_USEC
+#endif //FLOG_CONFIG_TIMESTAMP
 
 
 #ifdef FLOG_CONFIG_MSG_TYPE_ENUM_API
@@ -167,7 +167,7 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 //! @param[in] text message text
 //! @retval 0 success
 //! @see _flog_print(), flog_printf(), flog_dprint()
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
 #define flog_print(p, subsystem, type, msg_id, text) _flog_print(p,subsystem,__FILE__,__LINE__,__FUNCTION__,type,msg_id,text)
 #else
 #define flog_print(p, subsystem, type, msg_id, text) _flog_print(p,subsystem,type,msg_id,text)
@@ -183,7 +183,7 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 //! @param[in] ... formatted message text
 //! @retval 0 success
 //! @see _flog_printf(), flog_print(), flog_dprintf()
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
 #define flog_printf(p, subsystem, type, msg_id, ...) _flog_printf(p,subsystem,__FILE__,__LINE__,__FUNCTION__,type,msg_id,__VA_ARGS__)
 #else
 #define flog_printf(p, subsystem, type, msg_id, ...) _flog_printf(p,subsystem,type,msg_id,__VA_ARGS__)
@@ -216,7 +216,7 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 
 //! @param[in,out] p log to emit message to
 //! @param[in] cond statement to evaluate
-#ifdef FLOG_ABORT_ON_ASSERT
+#ifdef FLOG_CONFIG_ABORT_ON_ASSERT
 #define flog_assert(p, cond) \
 { \
 	if(!(cond)) { \
@@ -224,22 +224,22 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 		abort(); \
 	} \
 }
-#else
+#else //FLOG_CONFIG_ABORT_ON_ASSERT
 #define flog_assert(p, cond) \
 { \
 	if(!(cond)) \
 		flog_printf(p,NULL,FLOG_ERROR,FLOG_MSG_ASSERTION_FAILED,#cond); \
 }
-#endif
+#endif //FLOG_CONFIG_ABORT_ON_ASSERT
 
 
 //! Message structure - Holds all data related to a single message
 typedef struct {
 	char *subsystem;                        //!< subsystem which is outputting the msg
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 	FLOG_TIMESTAMP_T timestamp;             //!< timestamp
 #endif
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
 	char *src_file;                         //!< source file emitting message
 	uint_fast16_t src_line;                 //!< source line number emitting message
 	char *src_func;                         //!< source function emitting message
@@ -274,10 +274,10 @@ typedef struct flog_t {
 void init_flog_msg_t(FLOG_MSG_T *p);
 
 FLOG_MSG_T * create_flog_msg_t(const char *subsystem,
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
                                FLOG_TIMESTAMP_T timestamp,
 #endif
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
                                const char *src_file,int src_line,const char *src_func,
 #endif
                                FLOG_MSG_TYPE_T msg_type,FLOG_MSG_ID_T msg_id,const char *text);
@@ -292,7 +292,7 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg);
 void flog_clear_msg_buffer(FLOG_T *p);
 int flog_append_sublog(FLOG_T *p,FLOG_T *sublog);
 
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
 int _flog_print(FLOG_T *p,const char *subsystem,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text);
 int _flog_printf(FLOG_T *p,const char *subsystem,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *textf, ...);
 #else

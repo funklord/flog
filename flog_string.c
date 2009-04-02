@@ -16,7 +16,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 #include <time.h>
 
 
@@ -27,19 +27,19 @@
 //! @retval 0 success
 int flog_get_str_iso_timestamp(char **strp, const FLOG_TIMESTAMP_T ts)
 {
-#ifdef FLOG_TIMESTAMP_USEC
-	//! @todo implement FLOG_TIMESTAMP_USEC support
-#else //FLOG_TIMESTAMP_USEC
+#ifdef FLOG_CONFIG_TIMESTAMP_USEC
+	//! @todo implement FLOG_CONFIG_TIMESTAMP_USEC support
+#else //FLOG_CONFIG_TIMESTAMP_USEC
 	struct tm ts_tm;
 	ts_tm = *localtime(&ts);
 	if(asprintf(strp,"%04d-%02d-%02d %02d:%02d:%02d", ts_tm.tm_year+1900, ts_tm.tm_mon+1, ts_tm.tm_mday, ts_tm.tm_hour, ts_tm.tm_min, ts_tm.tm_sec)==-1) {
 		*strp=NULL;
 		return(-1);
 	}
-#endif //FLOG_TIMESTAMP_USEC
+#endif //FLOG_CONFIG_TIMESTAMP_USEC
 	return(0);
 }
-#endif //FLOG_TIMESTAMP
+#endif //FLOG_CONFIG_TIMESTAMP
 
 
 //! Create a string or NULL according to message type
@@ -87,9 +87,9 @@ int flog_get_str_msg_type(char **strp, const FLOG_MSG_TYPE_T type)
 }
 
 
-#ifdef FLOG_MSG_ID_STRINGS
+#ifdef FLOG_CONFIG_MSG_ID_STRINGS
 extern const char *flog_msg_id_str[];
-#endif //FLOG_MSG_ID_STRINGS
+#endif //FLOG_CONFIG_MSG_ID_STRINGS
 
 
 //! Create a string from FLOG_MSG_ID
@@ -103,33 +103,33 @@ int flog_get_str_msg_id(char **strp, const FLOG_MSG_ID_T msg_id)
 	if(msg_id==0)
 		return(0);
 	if(msg_id>=FLOG_MSG_ID_AMOUNT_RESERVED_FOR_ERRNO) {
-#ifdef FLOG_MSG_ID_STRINGS
+#ifdef FLOG_CONFIG_MSG_ID_STRINGS
 		//! @todo we need to run toupper() on the first char of the message (maybe another function?)
-#ifdef FLOG_MSG_ID_OUTPUT_SHOW_ID
+#ifdef FLOG_CONFIG_OUTPUT_SHOW_MSG_ID
 		if(asprintf(strp,"(%d) %s", msg_id, flog_msg_id_str[msg_id-FLOG_MSG_ID_AMOUNT_RESERVED_FOR_ERRNO])==-1) {
 			*strp=NULL;
-#else //FLOG_MSG_ID_OUTPUT_SHOW_ID
+#else //FLOG_CONFIG_OUTPUT_SHOW_MSG_ID
 		if(!(*strp=strdup(flog_msg_id_str[msg_id-FLOG_MSG_ID_AMOUNT_RESERVED_FOR_ERRNO]))) {
-#endif //FLOG_MSG_ID_OUTPUT_SHOW_ID
-#else //FLOG_MSG_ID_STRINGS
+#endif //FLOG_CONFIG_OUTPUT_SHOW_MSG_ID
+#else //FLOG_CONFIG_MSG_ID_STRINGS
 		if(asprintf(strp,"%d", msg_id)==-1) {
 			*strp=NULL;
-#endif //FLOG_MSG_ID_STRINGS
+#endif //FLOG_CONFIG_MSG_ID_STRINGS
 			return(-1);
 		}
 	} else {
 		//! @todo make thread safe with strerror_r()
-#ifdef FLOG_ERRNO_STRINGS
-#ifdef FLOG_MSG_ID_OUTPUT_SHOW_ID
+#ifdef FLOG_CONFIG_ERRNO_STRINGS
+#ifdef FLOG_CONFIG_OUTPUT_SHOW_MSG_ID
 		if(asprintf(strp,"(%d) %s", msg_id, strerror(msg_id))==-1) {
 			*strp=NULL;
-#else //FLOG_MSG_ID_OUTPUT_SHOW_ID
+#else //FLOG_CONFIG_OUTPUT_SHOW_MSG_ID
 		if(!(*strp=strdup(strerror(msg_id)))) {
-#endif //FLOG_MSG_ID_OUTPUT_SHOW_ID
-#else //FLOG_ERRNO_STRINGS
+#endif //FLOG_CONFIG_OUTPUT_SHOW_MSG_ID
+#else //FLOG_CONFIG_ERRNO_STRINGS
 		if(asprintf(strp,"(%d)", msg_id)==-1) {
 			*strp=NULL;
-#endif //FLOG_ERRNO_STRINGS
+#endif //FLOG_CONFIG_ERRNO_STRINGS
 			return(-1);
 		}
 	}
@@ -137,7 +137,7 @@ int flog_get_str_msg_id(char **strp, const FLOG_MSG_ID_T msg_id)
 }
 
 
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
 //! Create a string from flog source info
 
 //! @param[out] **strp string to set (NULL on error)
@@ -209,15 +209,15 @@ int flog_get_str_src_info(char **strp, const char *src_file, const int src_line,
 int flog_get_str_message_header(char **strp, const FLOG_MSG_T *p)
 {
 	*strp=NULL;
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 	char *str_timestamp;
 	if(flog_get_str_iso_timestamp(&str_timestamp, p->timestamp))
 		return(-1);
 #endif
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
 	char *str_src_info;
 	if(flog_get_str_src_info(&str_src_info, p->src_file, p->src_line, p->src_func)) {
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 		free(str_timestamp);
 #endif
 		return(-1);
@@ -225,9 +225,9 @@ int flog_get_str_message_header(char **strp, const FLOG_MSG_T *p)
 #endif
 
 	if(p->subsystem) {
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
 		if(str_src_info) {
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 			if(str_timestamp) {
 				if(asprintf(strp,"%s %s %s", str_timestamp, str_src_info, p->subsystem)==-1) {
 					free(str_timestamp);
@@ -243,13 +243,13 @@ int flog_get_str_message_header(char **strp, const FLOG_MSG_T *p)
 					*strp=NULL;
 					return(-1);
 				}
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 			}
 #endif
 			free(str_src_info);
 		} else {
 #endif
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 			if(str_timestamp) {
 				if(asprintf(strp,"%s %s", str_timestamp, p->subsystem)==-1) {
 					free(str_timestamp);
@@ -261,16 +261,16 @@ int flog_get_str_message_header(char **strp, const FLOG_MSG_T *p)
 #endif
 				if(!(*strp=strdup(p->subsystem)))
 					return(-1);
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 			}
 #endif
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
 		}
 #endif
 	} else {
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
 		if(str_src_info) {
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 			if(str_timestamp) {
 				if(asprintf(strp,"%s %s", str_timestamp, str_src_info)==-1) {
 					free(str_timestamp);
@@ -285,13 +285,13 @@ int flog_get_str_message_header(char **strp, const FLOG_MSG_T *p)
 					free(str_src_info);
 					return(-1);
 				}
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 			}
 #endif
 			free(str_src_info);
 		} else {
 #endif
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 			if(str_timestamp) {
 				if(!(*strp=strdup(str_timestamp))) {
 					free(str_timestamp);
@@ -301,10 +301,10 @@ int flog_get_str_message_header(char **strp, const FLOG_MSG_T *p)
 			} else {
 #endif
 				*strp=NULL;
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 			}
 #endif
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
 		}
 #endif
 	}
@@ -441,10 +441,10 @@ char * flog_msg_t_to_str(const FLOG_MSG_T *p)
 {
 	char *str,*typestr;
 	typestr=flog_get_msg_type_str(p->type);
-#ifdef FLOG_TIMESTAMP
+#ifdef FLOG_CONFIG_TIMESTAMP
 	//! @todo add timestamp support
 #else
-#ifdef FLOG_SRC_INFO
+#ifdef FLOG_CONFIG_SRC_INFO
 	if((p->subsystem != NULL) && (typestr != NULL))
 		asprintf(&str,"[%s:%d|%s() %s] %s%s\n",p->src_file,(int)p->src_line,p->src_func,p->subsystem,typestr,p->text);
 	else if((p->subsystem != NULL) && (typestr == NULL))
@@ -462,8 +462,8 @@ char * flog_msg_t_to_str(const FLOG_MSG_T *p)
 		asprintf(&str,"%s%s\n",typestr,p->text);
 	else
 		asprintf(&str,"%s\n",p->text);
-#endif //FLOG_SRC_INFO
-#endif //FLOG_TIMESTAMP
+#endif //FLOG_CONFIG_SRC_INFO
+#endif //FLOG_CONFIG_TIMESTAMP
 	free(typestr);
 	return(str);
 }

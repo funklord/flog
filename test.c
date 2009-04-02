@@ -14,12 +14,12 @@ int main(void)
 	printf("-[flog test start]-\n");
 
 	//create logs
-	log_main = create_flog_t(__func__,FLOG_ACCEPT_ALL);
+	log_main = create_flog_t(__func__,FLOG_ACCEPT_DEEP_DEBUG);
 	log_main->error_log=log_main;
-	log_subfunc = create_flog_t("subfunc",FLOG_ACCEPT_ALL);
+	log_subfunc = create_flog_t("subfunc",FLOG_ACCEPT_DEEP_DEBUG);
 	log_subfunc->error_log=log_main;
 	flog_append_sublog(log_subfunc,log_main);
-#ifdef FLOG_OUTPUT_STDIO
+#ifdef FLOG_CONFIG_OUTPUT_STDIO
 	FLOG_T *log_stdout,*log_stderr;
 	log_stdout = create_flog_output_stdout("stdout",FLOG_ACCEPT_ONLY_ERROR);
 	log_stdout->error_log=log_main;
@@ -28,7 +28,7 @@ int main(void)
 	log_stderr->error_log=log_main;
 	flog_append_sublog(log_main,log_stderr);
 #endif
-#ifdef FLOG_OUTPUT_FILE
+#ifdef FLOG_CONFIG_OUTPUT_FILE
 	FLOG_T *log_file;
 	log_file = create_flog_output_file("file",FLOG_ACCEPT_ALL,"test.log");
 	log_file->error_log=log_main;
@@ -49,14 +49,17 @@ int main(void)
 	flog_test(log_main);
 #endif
 
+	//int i;
+	//for(i=0;i<10000000;i++)
+		//flog_print(log_subfunc,NULL,FLOG_DEEP_DEBUG,FLOG_MSG_MARK,NULL);
 	//clean up
 	destroy_flog_t(log_subfunc);
 	destroy_flog_t(log_main);
-#ifdef FLOG_OUTPUT_STDIO
+#ifdef FLOG_CONFIG_OUTPUT_STDIO
 	destroy_flog_t(log_stdout);
 	destroy_flog_t(log_stderr);
 #endif
-#ifdef FLOG_OUTPUT_FILE
+#ifdef FLOG_CONFIG_OUTPUT_FILE
 	destroy_flog_output_file(log_file);
 #endif
 	return(0);
