@@ -29,9 +29,9 @@
 
 //! @def FLOG_CONFIG_ABORT_ON_ASSERT
 //! If defined then flog_assert() will call abort() on assertion failure.
-//! This behaviour can be! switched off for deeply embedded systems where
+//! This behaviour can be switched off for deeply embedded systems where
 //! calling abort() doesn't make any sense.
-//#define FLOG_CONFIG_ABORT_ON_ASSERT
+#define FLOG_CONFIG_ABORT_ON_ASSERT
 
 
 //! @def FLOG_CONFIG_TIMESTAMP
