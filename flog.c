@@ -325,17 +325,13 @@ int _flog_print(FLOG_T *p,const char *subsystem,
 	FLOG_MSG_T msg;
 	init_flog_msg_t(&msg);
 	msg.msg_id = msg_id;
-#ifdef FLOG_CONFIG_EMPTY_STRING_TO_NULL
 	if(text && text[0])
-#endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
 		msg.text = text;
 #ifndef FLOG_CONFIG_ALLOW_NULL_MESSAGES
 	if(!msg.msg_id && !msg.text)
 		return(1);
 #endif //FLOG_CONFIG_ALLOW_NULL_MESSAGES
-#ifdef FLOG_CONFIG_EMPTY_STRING_TO_NULL
 	if(subsystem && subsystem[0])
-#endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
 		msg.subsystem = subsystem;
 #ifdef FLOG_CONFIG_TIMESTAMP
 #ifdef FLOG_CONFIG_TIMESTAMP_USEC
@@ -346,21 +342,15 @@ int _flog_print(FLOG_T *p,const char *subsystem,
 #endif //FLOG_CONFIG_TIMESTAMP_USEC
 #endif //FLOG_CONFIG_TIMESTAMP
 #ifdef FLOG_CONFIG_SRC_INFO
-#ifdef FLOG_CONFIG_EMPTY_STRING_TO_NULL
 	if(src_file && src_file[0])
-#endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
 		msg.src_file = src_file;
 	msg.src_line = src_line;
-#ifdef FLOG_CONFIG_EMPTY_STRING_TO_NULL
 	if(src_func && src_func[0])
-#endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
 		msg.src_func = src_func;
 #endif //FLOG_CONFIG_SRC_INFO
 	msg.type = type;
 	msg.msg_id = msg_id;
-#ifdef FLOG_CONFIG_EMPTY_STRING_TO_NULL
 	if(text && text[0])
-#endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
 		msg.text = text;
 
 	//Add message to log
@@ -408,17 +398,13 @@ int _flog_printf(FLOG_T *p,const char *subsystem,
 	FLOG_MSG_T msg;
 	init_flog_msg_t(&msg);
 	msg.msg_id = msg_id;
-#ifdef FLOG_CONFIG_EMPTY_STRING_TO_NULL
 	if(text && text[0])
-#endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
 		msg.text = text;
 #ifndef FLOG_CONFIG_ALLOW_NULL_MESSAGES
 	if(!msg.msg_id && !msg.text)
 		return(1);
 #endif //FLOG_CONFIG_ALLOW_NULL_MESSAGES
-#ifdef FLOG_CONFIG_EMPTY_STRING_TO_NULL
 	if(subsystem && subsystem[0])
-#endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
 		msg.subsystem = subsystem;
 #ifdef FLOG_CONFIG_TIMESTAMP
 #ifdef FLOG_CONFIG_TIMESTAMP_USEC
@@ -429,14 +415,10 @@ int _flog_printf(FLOG_T *p,const char *subsystem,
 #endif //FLOG_CONFIG_TIMESTAMP_USEC
 #endif //FLOG_CONFIG_TIMESTAMP
 #ifdef FLOG_CONFIG_SRC_INFO
-#ifdef FLOG_CONFIG_EMPTY_STRING_TO_NULL
 	if(src_file && src_file[0])
-#endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
 		msg.src_file = src_file;
 	msg.src_line = src_line;
-#ifdef FLOG_CONFIG_EMPTY_STRING_TO_NULL
 	if(src_func && src_func[0])
-#endif //FLOG_CONFIG_EMPTY_STRING_TO_NULL
 		msg.src_func = src_func;
 #endif //FLOG_CONFIG_SRC_INFO
 	msg.type = type;

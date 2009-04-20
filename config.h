@@ -6,13 +6,6 @@
 //! Set these defines according to the needs of your project.
 
 
-//! @def FLOG_CONFIG_EMPTY_STRING_TO_NULL
-//! If defined, then strings passed to flog_print() and flog_printf()
-//! will be checked for length and if they are empty (0 length)
-//! then the string is set to null.
-#define FLOG_CONFIG_EMPTY_STRING_TO_NULL
-
-
 //! @def FLOG_CONFIG_ALLOW_NULL_MESSAGES
 //! If defined, then messages with msg_id=0 and a NULL text string will
 //! be passed on as valid flog messages.
