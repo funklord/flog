@@ -162,8 +162,9 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 
 //! use this when you need to emit simple text messages and flog_printf() when formatting is needed
 //! @param[in,out] p log to emit message to
-//! @param[in] type use one of the FLOG_* defines
 //! @param[in] subsystem which part of the program is outputing this message
+//! @param[in] type use one of the FLOG_* defines
+//! @param[in] msg_id optionally use errno or one of the FLOG_MSG_* defines
 //! @param[in] text message text
 //! @retval 0 success
 //! @see _flog_print(), flog_printf(), flog_dprint()
@@ -178,8 +179,9 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 
 //! use this when you need to emit formatted text messages and flog_print() when no formatting is needed
 //! @param[in,out] p log to emit message to
-//! @param[in] type use one of the FLOG_* defines
 //! @param[in] subsystem which part of the program is outputing this message
+//! @param[in] type use one of the FLOG_* defines
+//! @param[in] msg_id optionally use errno or one of the FLOG_MSG_* defines
 //! @param[in] ... formatted message text
 //! @retval 0 success
 //! @see _flog_printf(), flog_print(), flog_dprintf()
