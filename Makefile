@@ -42,7 +42,7 @@ valgrind_test: test
 	$(VALGRIND) ./$<
 
 clean:
-	$(RM) $(OBJ) $(LIB) test
+	$(RM) $(OBJ) $(LIB) test.o test
 
 distclean: clean
 	$(RM) -r doxygen
