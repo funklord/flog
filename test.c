@@ -42,7 +42,7 @@ int main(void)
 	flog_print(log_subfunc,NULL,FLOG_ERROR,ENOMEM,NULL);
 
 	flog_assert(log_subfunc,1+1);
-	flog_assert(log_subfunc,1-1);
+	//flog_assert(log_subfunc,1-1);
 
 #ifdef DEBUG
 	printf("-[flog test suite]-\n");
