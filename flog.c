@@ -339,7 +339,8 @@ int _flog_print(FLOG_T *p,const char *subsystem,
 		msg.subsystem = subsystem;
 #ifdef FLOG_CONFIG_TIMESTAMP
 #ifdef FLOG_CONFIG_TIMESTAMP_USEC
-//! @todo implement FLOG_CONFIG_TIMESTAMP_USEC support
+	if(gettimeofday(&msg.timestamp,NULL))
+		return(1);
 #else //FLOG_CONFIG_TIMESTAMP_USEC
 	msg.timestamp = time(NULL);
 #endif //FLOG_CONFIG_TIMESTAMP_USEC
@@ -421,7 +422,8 @@ int _flog_printf(FLOG_T *p,const char *subsystem,
 		msg.subsystem = subsystem;
 #ifdef FLOG_CONFIG_TIMESTAMP
 #ifdef FLOG_CONFIG_TIMESTAMP_USEC
-//! @todo implement FLOG_CONFIG_TIMESTAMP_USEC support
+	if(gettimeofday(&msg.timestamp,NULL))
+		return(1);
 #else //FLOG_CONFIG_TIMESTAMP_USEC
 	msg.timestamp = time(NULL);
 #endif //FLOG_CONFIG_TIMESTAMP_USEC

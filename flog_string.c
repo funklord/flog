@@ -27,16 +27,17 @@
 //! @retval 0 success
 int flog_get_str_iso_timestamp(char **strp, const FLOG_TIMESTAMP_T ts)
 {
-#ifdef FLOG_CONFIG_TIMESTAMP_USEC
-	//! @todo implement FLOG_CONFIG_TIMESTAMP_USEC support
-#else //FLOG_CONFIG_TIMESTAMP_USEC
 	struct tm ts_tm;
+#ifdef FLOG_CONFIG_TIMESTAMP_USEC
+	ts_tm = *localtime(&ts.tv_sec);
+	if(asprintf(strp,"%04d-%02d-%02d %02d:%02d:%02d.%06d", ts_tm.tm_year+1900, ts_tm.tm_mon+1, ts_tm.tm_mday, ts_tm.tm_hour, ts_tm.tm_min, ts_tm.tm_sec, ts.tv_usec)==-1) {
+#else //FLOG_CONFIG_TIMESTAMP_USEC
 	ts_tm = *localtime(&ts);
 	if(asprintf(strp,"%04d-%02d-%02d %02d:%02d:%02d", ts_tm.tm_year+1900, ts_tm.tm_mon+1, ts_tm.tm_mday, ts_tm.tm_hour, ts_tm.tm_min, ts_tm.tm_sec)==-1) {
+#endif //FLOG_CONFIG_TIMESTAMP_USEC
 		*strp=NULL;
 		return(-1);
 	}
-#endif //FLOG_CONFIG_TIMESTAMP_USEC
 	return(0);
 }
 #endif //FLOG_CONFIG_TIMESTAMP

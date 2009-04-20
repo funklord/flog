@@ -43,7 +43,7 @@
 //! @def FLOG_CONFIG_TIMESTAMP_USEC
 //! If defined, then this activates timestamping of flog messages with
 //! millisecond (usec) accuracy. Requires sys/time.h support.
-//#define FLOG_CONFIG_TIMESTAMP_USEC
+#define FLOG_CONFIG_TIMESTAMP_USEC
 
 
 //! @def FLOG_CONFIG_SRC_INFO
