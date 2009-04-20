@@ -6,6 +6,10 @@ ifdef DEBUG
 CFLAGS  += -g -DDEBUG
 LDFLAGS += -g -DDEBUG
 endif
+ifdef PROFILE
+CFLAGS  += -pg
+LDFLAGS += -pg
+endif
 LIB      = libflog.a
 DOXYGEN  = doxygen
 VALGRIND = valgrind -v --leak-check=full
