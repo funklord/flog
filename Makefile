@@ -1,7 +1,7 @@
 ##Config
 CC       = gcc
-CFLAGS   = -Wall -Os
-LDFLAGS  = -Wall -Os
+CFLAGS   = -W -Wall -Os
+LDFLAGS  = -W -Wall -Os
 ifdef DEBUG
 CFLAGS  += -g -DDEBUG
 LDFLAGS += -g -DDEBUG
