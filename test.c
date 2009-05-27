@@ -24,7 +24,7 @@ int main(void)
 	log_stdout = create_flog_output_stdout("stdout",FLOG_ACCEPT_ONLY_ERROR);
 	log_stdout->error_log=log_main;
 	flog_append_sublog(log_main,log_stdout);
-	log_stderr = create_flog_output_stderr("stderr",FLOG_ACCEPT_ALL);
+	log_stderr = create_flog_output_stderr("stderr",FLOG_ACCEPT_DEEP_DEBUG);
 	log_stderr->error_log=log_main;
 	flog_append_sublog(log_main,log_stderr);
 #endif
@@ -35,6 +35,7 @@ int main(void)
 	flog_append_sublog(log_main,log_file);
 #endif
 
+	flog_function_start(log_subfunc,NULL);
 	flog_print(log_subfunc,"print_test",FLOG_ERROR,0,"testing...");
 	flog_printf(log_subfunc,"printf_test",FLOG_INFO,0,"testing... %d %d %d",1,2,3);
 
@@ -53,6 +54,9 @@ int main(void)
 	//for(i=0;i<10000000;i++)
 		//flog_print(log_subfunc,NULL,FLOG_DEEP_DEBUG,FLOG_MSG_MARK,NULL);
 	//clean up
+
+	flog_function_end(log_subfunc,NULL);
+
 	destroy_flog_t(log_subfunc);
 	destroy_flog_t(log_main);
 #ifdef FLOG_CONFIG_OUTPUT_STDIO

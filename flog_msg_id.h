@@ -18,10 +18,13 @@
 //! Amount of msg_id entries reserved for passing errno values
 #define FLOG_MSG_ID_AMOUNT_RESERVED_FOR_ERRNO 8000
 
+
 //! Built in message ids, these are used internally by flog
 #define FLOG_MSG_IDS_BUILTIN \
 X(FLOG_MSG_MARK,                   "Mark"                  ) \
-X(FLOG_MSG_ASSERTION_FAILED,       "Assertion failed"      )
+X(FLOG_MSG_ASSERTION_FAILED,       "Assertion failed"      ) \
+X(FLOG_MSG_FUNCTION_START,         "Function start"        ) \
+X(FLOG_MSG_FUNCTION_END,           "Function end"          )
 
 
 //! Common message ids, used by the various output modules

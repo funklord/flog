@@ -31,6 +31,11 @@ typedef time_t FLOG_TIMESTAMP_T;
 
 #ifdef FLOG_CONFIG_MSG_TYPE_ENUM_API
 
+//! @addtogroup FLOG_MSG_TYPE_T
+//! @brief Types of messages supported by FLOG
+//! @details Use where ever a @ref FLOG_MSG_TYPE_T is referred
+//! @{
+
 typedef enum flog_msg_type {
 	FLOG_NONE        = 0x00,
 	FLOG_NOTHING     = FLOG_NONE,
@@ -72,6 +77,8 @@ typedef enum flog_msg_type {
 	FLOG_ACCEPT_DEEP_DEBUG        = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG | FLOG_DEEP_DEBUG,
 	FLOG_ACCEPT_ALL               = FLOG_ACCEPT_DEBUG
 } FLOG_MSG_TYPE_T;
+
+//! @}
 
 #else //FLOG_CONFIG_MSG_TYPE_ENUM_API
 
@@ -167,6 +174,9 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 //! @param[in] msg_id optionally use errno or one of the FLOG_MSG_* defines
 //! @param[in] text message text
 //! @retval 0 success
+//! @retval 1 error while adding message to log
+//! @retval 2 error unable to get time
+//! @retval 3 did not add null message (flog is configured not to allow null messages)
 //! @see _flog_print(), flog_printf(), flog_dprint()
 #ifdef FLOG_CONFIG_SRC_INFO
 #define flog_print(p, subsystem, type, msg_id, text) _flog_print(p,subsystem,__FILE__,__LINE__,__FUNCTION__,type,msg_id,text)
@@ -184,6 +194,9 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 //! @param[in] msg_id optionally use errno or one of the FLOG_MSG_* defines
 //! @param[in] ... formatted message text
 //! @retval 0 success
+//! @retval 1 error while adding message to log
+//! @retval 2 error unable to get time
+//! @retval 3 did not add null message (flog is configured not to allow null messages)
 //! @see _flog_printf(), flog_print(), flog_dprintf()
 #ifdef FLOG_CONFIG_SRC_INFO
 #define flog_printf(p, subsystem, type, msg_id, ...) _flog_printf(p,subsystem,__FILE__,__LINE__,__FUNCTION__,type,msg_id,__VA_ARGS__)
@@ -192,26 +205,22 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 #endif
 
 
-//! Same as flog_print() but only defined if DEBUG is set
-
-//! Use this macro to allow removal of messages from release builds
-//! @see flog_print()
-#ifdef DEBUG
-#define flog_dprint(p, subsystem, type, msg_id, text) flog_print(p,subsystem,type,msg_id,text)
-#else
-#define flog_dprint(p, subsystem, type, msg_id, text)
-#endif
+//! @addtogroup flog_runtime_debug_macros
+//! @brief Macros for runtime debugging
+//! @details Use these macros for various debugging purposes
+//! @{
 
 
-//! Same as flog_printf() but only defined if DEBUG is set
+//! Macro to signify function start
 
-//! Use this macro to allow removal of messages from release builds
-//! @see flog_printf()
-#ifdef DEBUG
-#define flog_dprintf(p, subsystem, type, msg_id, ...) flog_printf(p,subsystem,type,msg_id,__VA_ARGS__)
-#else
-#define flog_dprintf(p, subsystem, type, msg_id, ...)
-#endif
+//! Use this macro for deep debugging of program flow
+#define flog_function_start(p, subsystem) flog_printf(p,subsystem,FLOG_DEEP_DEBUG,FLOG_MSG_FUNCTION_START,"%s()",__FUNCTION__)
+
+
+//! Macro to signify function end
+
+//! Use this macro for deep debugging of program flow
+#define flog_function_end(p, subsystem) flog_printf(p,subsystem,FLOG_DEEP_DEBUG,FLOG_MSG_FUNCTION_END,"%s()",__FUNCTION__)
 
 
 //! Macro for flog assert functionality
@@ -233,6 +242,62 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 		flog_printf(p,NULL,FLOG_ERROR,FLOG_MSG_ASSERTION_FAILED,#cond); \
 }
 #endif //FLOG_CONFIG_ABORT_ON_ASSERT
+
+
+//! @}
+
+
+//! @addtogroup flog_buildtime_debug_macros
+//! @brief Macros that are only defined when DEBUG is defined
+//! @details Use these macros to allow removal of messages from release builds
+//! @{
+
+
+//! Same as flog_print() but only defined if DEBUG is set
+
+//! Use this macro to allow removal of messages from release builds
+//! @see flog_print()
+#ifdef DEBUG
+#define flog_dprint(p, subsystem, type, msg_id, text) flog_print(p,subsystem,type,msg_id,text)
+#else
+#define flog_dprint(p, subsystem, type, msg_id, text) (0)
+#endif
+
+
+//! Same as flog_printf() but only defined if DEBUG is set
+
+//! Use this macro to allow removal of messages from release builds
+//! @see flog_printf()
+#ifdef DEBUG
+#define flog_dprintf(p, subsystem, type, msg_id, ...) flog_printf(p,subsystem,type,msg_id,__VA_ARGS__)
+#else
+#define flog_dprintf(p, subsystem, type, msg_id, ...) (0)
+#endif
+
+
+//! Same as flog_function_start() but only defined if DEBUG is set
+
+//! Use this macro to allow removal of messages from release builds
+//! @see flog_function_start()
+#ifdef DEBUG
+#define flog_debug_function_start(p, subsystem) flog_function_start(p, subsystem)
+#else
+#define flog_debug_function_start(p, subsystem) (0)
+#endif
+
+
+//! Same as flog_function_end() but only defined if DEBUG is set
+
+//! Use this macro to allow removal of messages from release builds
+//! @see flog_function_end()
+#ifdef DEBUG
+#define flog_debug_function_end(p, subsystem) flog_function_end(p, subsystem)
+#else
+#define flog_debug_function_end(p, subsystem) (0)
+#endif
+
+
+//! @}
 
 
 //! Message structure - Holds all data related to a single message

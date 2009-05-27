@@ -308,6 +308,9 @@ int flog_is_message_used(FLOG_T *p,FLOG_MSG_TYPE_T type)
 //! @param[in] msg_id optionally use errno or one of the FLOG_MSG_* defines
 //! @param[in] *text message text
 //! @retval 0 success
+//! @retval 1 error while adding message to log
+//! @retval 2 error unable to get time
+//! @retval 3 did not add null message (flog is configured not to allow null messages)
 //! @see flog_print()
 int _flog_print(FLOG_T *p,const char *subsystem,
 #ifdef FLOG_CONFIG_SRC_INFO
@@ -329,14 +332,14 @@ int _flog_print(FLOG_T *p,const char *subsystem,
 		msg.text = text;
 #ifndef FLOG_CONFIG_ALLOW_NULL_MESSAGES
 	if(!msg.msg_id && !msg.text)
-		return(1);
+		return(3);
 #endif //FLOG_CONFIG_ALLOW_NULL_MESSAGES
 	if(subsystem && subsystem[0])
 		msg.subsystem = subsystem;
 #ifdef FLOG_CONFIG_TIMESTAMP
 #ifdef FLOG_CONFIG_TIMESTAMP_USEC
 	if(gettimeofday(&msg.timestamp,NULL))
-		return(1);
+		return(2);
 #else //FLOG_CONFIG_TIMESTAMP_USEC
 	msg.timestamp = time(NULL);
 #endif //FLOG_CONFIG_TIMESTAMP_USEC
@@ -373,6 +376,9 @@ int _flog_print(FLOG_T *p,const char *subsystem,
 //! @param[in] msg_id optionally use errno or one of the FLOG_MSG_* defines
 //! @param[in] *textf formatted message text
 //! @retval 0 success
+//! @retval 1 error while adding message to log
+//! @retval 2 error unable to get time
+//! @retval 3 did not add null message (flog is configured not to allow null messages)
 //! @see flog_printf()
 int _flog_printf(FLOG_T *p,const char *subsystem,
 #ifdef FLOG_CONFIG_SRC_INFO
