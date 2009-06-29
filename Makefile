@@ -26,7 +26,7 @@ all: lib
 
 lib: $(LIB)
 
-%.o: %.c
+%.o: %.c $(HEADER)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(LIB): $(OBJ) $(HEADER)
