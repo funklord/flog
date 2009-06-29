@@ -13,6 +13,8 @@
 #include "flog_string.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <errno.h>
 
 
 //! Output function for log output to stdout
@@ -23,11 +25,11 @@ int flog_output_stdout(FLOG_T *log,const FLOG_MSG_T *msg)
 	char *str;
 	if(flog_get_str_message(&str,msg))
 		return(-1);
-	if(fprintf(stdout,str)<0) {
-		log->output_error=1;
+	if(fputs(str,stdout)==EOF) {
+		log->output_error=errno;
 		free(str);
-		flog_print(log->error_log,NULL,FLOG_ERROR,FLOG_MSG_CANNOT_WRITE_TO_STDOUT,NULL);
-		return(-2);
+		flog_print(log->error_log,NULL,FLOG_ERROR,FLOG_MSG_CANNOT_WRITE_TO_STDOUT,strerror(log->output_error));
+		return(log->output_error);
 	}
 	free(str);
 	return(0);
@@ -42,11 +44,11 @@ int flog_output_stderr(FLOG_T *log,const FLOG_MSG_T *msg)
 	char *str;
 	if(flog_get_str_message(&str,msg))
 		return(-1);
-	if(fprintf(stderr,str)<0) {
-		log->output_error=1;
+	if(fputs(str,stderr)==EOF) {
+		log->output_error=errno;
 		free(str);
-		flog_print(log->error_log,NULL,FLOG_ERROR,FLOG_MSG_CANNOT_WRITE_TO_STDERR,NULL);
-		return(-2);
+		flog_print(log->error_log,NULL,FLOG_ERROR,FLOG_MSG_CANNOT_WRITE_TO_STDERR,strerror(log->output_error));
+		return(log->output_error);
 	}
 	free(str);
 	return(0);

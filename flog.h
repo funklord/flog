@@ -327,7 +327,7 @@ typedef struct flog_t {
 	FLOG_MSG_TYPE_T accepted_msg_type;      //!< bitmask of which messages to accept
 	int (*output_func)(struct flog_t *,const FLOG_MSG_T *); //!< function to output messages to
 	void *output_func_data;                 //!< data passed to output func
-	uint_fast8_t output_error;              //!< errors occurred on output
+	uint_fast16_t output_error;             //!< errors occurred on output
 	uint_fast8_t output_stop_on_error;      //!< stop outputting messages on error
 	struct flog_t *error_log;               //!< error log for flog errors
 	FLOG_MSG_T **msg;                       //!< array of messages

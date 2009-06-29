@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 
 //! Output function for simple log output to a file
@@ -24,9 +25,9 @@
 int flog_output_file(FLOG_T *log,const FLOG_MSG_T *msg)
 {
 	if(log->output_func_data==NULL) {
-		log->output_error=1;
-		flog_print(log->error_log,"flog_output_file",FLOG_ERROR,0,"please set log output filename");
-		return(-1);
+		log->output_error=-1;
+		flog_print(log->error_log,"flog_output_file",FLOG_ERROR,FLOG_MSG_SET_OUTPUT_FILE,NULL);
+		return(log->output_error);
 	}
 	char *str;
 	if(flog_get_str_message(&str,msg))
@@ -34,22 +35,23 @@ int flog_output_file(FLOG_T *log,const FLOG_MSG_T *msg)
 
 	FILE *f;
 	if((f = fopen(log->output_func_data,"a+t"))==NULL) {
-		log->output_error=1;
+		log->output_error=errno;
 		free(str);
-		flog_printf(log->error_log,"fopen",FLOG_ERROR,0,"cannot open file: %s",log->output_func_data);
-		return(-2);
+		flog_printf(log->error_log,"fopen",FLOG_ERROR,FLOG_MSG_CANNOT_OPEN_FILE,"%s (%s)", log->output_func_data, strerror(log->output_error));
+		return(log->output_error);
 	}
-	if(fprintf(f,str)<0) {
-		log->output_error=1;
+	if(fputs(str,f)==EOF) {
+		log->output_error=errno;
 		free(str);
-		flog_printf(log->error_log,"fprintf",FLOG_ERROR,0,"cannot write to file: %s",log->output_func_data);
-		return(-2);
+		fclose(f); //close to avoid multiple fp recursion
+		flog_printf(log->error_log,"fprintf",FLOG_ERROR,FLOG_MSG_CANNOT_WRITE_FILE,"%s (%s)", log->output_func_data, strerror(log->output_error));
+		return(log->output_error);
 	}
 	free(str);
 	if(fclose(f)==EOF) {
-		log->output_error=1;
-		flog_printf(log->error_log,"fflush",FLOG_ERROR,0,"cannot write to file: %s",log->output_func_data);
-		return(-2);
+		log->output_error=errno;
+		flog_printf(log->error_log,"fclose",FLOG_ERROR,FLOG_MSG_CANNOT_WRITE_FILE,"%s (%s)", log->output_func_data, strerror(log->output_error));
+		return(log->output_error);
 	}
 	return(0);
 }

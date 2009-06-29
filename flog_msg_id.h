@@ -27,19 +27,32 @@ X(FLOG_MSG_FUNCTION_START,         "Function start"        ) \
 X(FLOG_MSG_FUNCTION_END,           "Function end"          )
 
 
-//! Common message ids, used by the various output modules
-#define FLOG_MSG_IDS_COMMON \
-X(FLOG_MSG_CANNOT_READ_FROM_STDIN, "cannot read from stdin") \
-X(FLOG_MSG_CANNOT_WRITE_TO_STDOUT, "cannot write to stdout") \
-X(FLOG_MSG_CANNOT_WRITE_TO_STDERR, "cannot write to stderr") \
-X(FLOG_MSG_CANNOT_OPEN_FILE,       "cannot open file"      ) \
-X(FLOG_MSG_CANNOT_READ_FILE,       "cannot read from file" ) \
-X(FLOG_MSG_CANNOT_WRITE_FILE,      "cannot write to file"  )
-
-
 //! Extended message ids, useful but not entirely necessary
 #define FLOG_MSG_IDS_EXTENDED \
-X(FLOG_MSG_CANNOT_OPEN_SOCKET,     "cannot open socket"    )
+X(FLOG_MSG_CANNOT_READ_FROM_STDIN, "Cannot read from stdin") \
+X(FLOG_MSG_CANNOT_READ_FILE,       "Cannot read from file" ) \
+X(FLOG_MSG_CANNOT_OPEN_SOCKET,     "Cannot open socket"    )
+
+
+//! Message ids for stdio output module
+#ifdef FLOG_CONFIG_OUTPUT_STDIO
+#define FLOG_MSG_IDS_OUTPUT_STDIO \
+X(FLOG_MSG_CANNOT_WRITE_TO_STDOUT, "Cannot write to stdout") \
+X(FLOG_MSG_CANNOT_WRITE_TO_STDERR, "Cannot write to stderr")
+#else
+#define FLOG_MSG_IDS_OUTPUT_STDIO
+#endif
+
+
+//! Message ids for file output module
+#ifdef FLOG_CONFIG_OUTPUT_FILE
+#define FLOG_MSG_IDS_OUTPUT_FILE \
+X(FLOG_MSG_CANNOT_OPEN_FILE,       "Cannot open file"      ) \
+X(FLOG_MSG_CANNOT_WRITE_FILE,      "Cannot write to file"  ) \
+X(FLOG_MSG_SET_OUTPUT_FILE,        "Please set output file")
+#else
+#define FLOG_MSG_IDS_OUTPUT_FILE
+#endif
 
 
 // Custom message ids, if they are not defined, define to null
@@ -51,8 +64,9 @@ X(FLOG_MSG_CANNOT_OPEN_SOCKET,     "cannot open socket"    )
 //! List of message id lists to be used
 #define FLOG_MSG_IDS \
 FLOG_MSG_IDS_BUILTIN \
-FLOG_MSG_IDS_COMMON \
 FLOG_MSG_IDS_EXTENDED \
+FLOG_MSG_IDS_OUTPUT_STDIO \
+FLOG_MSG_IDS_OUTPUT_FILE \
 FLOG_MSG_IDS_CUSTOM
 
 
