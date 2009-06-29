@@ -166,6 +166,11 @@ void destroy_flog_t(FLOG_T *p)
 }
 
 
+#ifdef FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH
+int stack_depth;
+#endif
+
+
 //! add a FLOG_MSG_T to FLOG_T and do all required logic (used by flog_print[f] functions)
 
 //! internal use only, or when extending flog
@@ -220,10 +225,18 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 		}
 	}
 
-	//add message to sublogs
-	uint_fast8_t i;
-	for(i=0;i<p->sublog_amount;i++)
-		e+=flog_add_msg(p->sublog[i],&outmsg);
+#ifdef FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH
+	if(stack_depth+1 < FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH) {
+		stack_depth++;
+#endif
+		//add message to sublogs
+		uint_fast8_t i;
+		for(i=0;i<p->sublog_amount;i++)
+			e+=flog_add_msg(p->sublog[i],&outmsg);
+#ifdef FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH
+		stack_depth--;
+	}
+#endif
 
 	//if we allocated a string, free it
 	if(free_subsystem)
@@ -286,11 +299,23 @@ int flog_is_message_used(FLOG_T *p,FLOG_MSG_TYPE_T type)
 			if(p->output_stop_on_error ? !p->output_error : 1)
 				return(1);
 		}
-		uint_fast8_t i;
-		for(i=0;i<p->sublog_amount;i++) {
-			if(flog_is_message_used(p->sublog[i],type))
-				return(1);
+#ifdef FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH
+		if(stack_depth+1 < FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH) {
+			stack_depth++;
+#endif
+			uint_fast8_t i;
+			for(i=0;i<p->sublog_amount;i++) {
+				if(flog_is_message_used(p->sublog[i],type)) {
+#ifdef FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH
+					stack_depth--;
+#endif
+					return(1);
+				}
+			}
+#ifdef FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH
+			stack_depth--;
 		}
+#endif
 	}
 	return(0);
 }

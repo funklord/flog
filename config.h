@@ -20,6 +20,16 @@
 #define FLOG_CONFIG_MSG_TYPE_ENUM_API
 
 
+//! @def FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH
+//! If defined, this option is used by the recursive functions flog_add_msg()
+//! and flog_is_message_used(). It specifies the maximum stack depth they
+//! are allowed to reach and thereby indirectly setting a limit on the
+//! stack usage of flog. Usually each stack level allocates a FLOG_T struct
+//! and a couple of arguments. To avoid infinite recursion caused by circular
+//! sublog structures, set this to a sane value like 8-32.
+#define FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH 16
+
+
 //! @def FLOG_CONFIG_ABORT_ON_ASSERT
 //! If defined then flog_assert() will call abort() on assertion failure.
 //! This behaviour can be switched off for deeply embedded systems where
