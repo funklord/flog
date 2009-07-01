@@ -179,8 +179,6 @@ int stack_depth;
 //! @retval 0 success
 int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 {
-	//! @todo since this function is recursive, a max stack usage limit would be in order
-
 	//compare if accepted message type
 	if(!(msg->type & p->accepted_msg_type))
 		return(0);
