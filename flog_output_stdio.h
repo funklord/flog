@@ -13,6 +13,17 @@
 
 #ifdef FLOG_CONFIG_OUTPUT_STDIO
 
+// Sanity checks
+#ifndef FLOG_CONFIG_STRING_OUTPUT
+#error FLOG_CONFIG_OUTPUT_STDIO requires FLOG_CONFIG_STRING_OUTPUT
+#endif
+#ifndef FLOG_CONFIG_MSG_ID_STRINGS
+#error FLOG_CONFIG_OUTPUT_STDIO requires FLOG_CONFIG_MSG_ID_STRINGS
+#endif
+#ifndef FLOG_CONFIG_ERRNO_STRINGS
+#error FLOG_CONFIG_OUTPUT_STDIO requires FLOG_CONFIG_ERRNO_STRINGS
+#endif
+
 int flog_output_stdout(FLOG_T *log,const FLOG_MSG_T *msg);
 int flog_output_stderr(FLOG_T *log,const FLOG_MSG_T *msg);
 

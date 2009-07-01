@@ -14,6 +14,17 @@
 
 #ifdef FLOG_CONFIG_OUTPUT_FILE
 
+// Sanity checks
+#ifndef FLOG_CONFIG_STRING_OUTPUT
+#error FLOG_CONFIG_OUTPUT_FILE requires FLOG_CONFIG_STRING_OUTPUT
+#endif
+#ifndef FLOG_CONFIG_MSG_ID_STRINGS
+#error FLOG_CONFIG_OUTPUT_FILE requires FLOG_CONFIG_MSG_ID_STRINGS
+#endif
+#ifndef FLOG_CONFIG_ERRNO_STRINGS
+#error FLOG_CONFIG_OUTPUT_FILE requires FLOG_CONFIG_ERRNO_STRINGS
+#endif
+
 int flog_output_file(FLOG_T *log,const FLOG_MSG_T *msg);
 FLOG_T * create_flog_output_file(const char *name, FLOG_MSG_TYPE_T accepted_msg_type, const char *filename);
 void destroy_flog_output_file(FLOG_T *p);

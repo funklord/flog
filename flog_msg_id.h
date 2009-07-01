@@ -16,6 +16,7 @@
 #include "config.h"
 
 //! Amount of msg_id entries reserved for passing errno values
+//! @todo make configurable, move out
 #define FLOG_MSG_ID_AMOUNT_RESERVED_FOR_ERRNO 8000
 
 
@@ -28,14 +29,18 @@ X(FLOG_MSG_FUNCTION_END,           "Function end"          )
 
 
 //! Extended message ids, useful but not entirely necessary
+#ifdef FLOG_CONFIG_MSG_ID_STRINGS_EXTENDED
 #define FLOG_MSG_IDS_EXTENDED \
 X(FLOG_MSG_CANNOT_READ_FROM_STDIN, "Cannot read from stdin") \
 X(FLOG_MSG_CANNOT_READ_FILE,       "Cannot read from file" ) \
 X(FLOG_MSG_CANNOT_OPEN_SOCKET,     "Cannot open socket"    )
+#else
+#define FLOG_MSG_IDS_EXTENDED
+#endif
 
 
 //! Message ids for stdio output module
-#ifdef FLOG_CONFIG_OUTPUT_STDIO
+#if defined(FLOG_CONFIG_OUTPUT_STDIO) || defined(FLOG_CONFIG_MSG_ID_STRINGS_EXTENDED)
 #define FLOG_MSG_IDS_OUTPUT_STDIO \
 X(FLOG_MSG_CANNOT_WRITE_TO_STDOUT, "Cannot write to stdout") \
 X(FLOG_MSG_CANNOT_WRITE_TO_STDERR, "Cannot write to stderr")
@@ -45,7 +50,7 @@ X(FLOG_MSG_CANNOT_WRITE_TO_STDERR, "Cannot write to stderr")
 
 
 //! Message ids for file output module
-#ifdef FLOG_CONFIG_OUTPUT_FILE
+#if defined(FLOG_CONFIG_OUTPUT_FILE) || defined(FLOG_CONFIG_MSG_ID_STRINGS_EXTENDED)
 #define FLOG_MSG_IDS_OUTPUT_FILE \
 X(FLOG_MSG_CANNOT_OPEN_FILE,       "Cannot open file"      ) \
 X(FLOG_MSG_CANNOT_WRITE_FILE,      "Cannot write to file"  ) \

@@ -70,6 +70,12 @@
 #define FLOG_CONFIG_MSG_ID_STRINGS
 
 
+//! @def FLOG_CONFIG_MSG_ID_STRINGS_EXTENDED
+//! If defined, a couple of useful message strings will be included in flog.
+//! Undefine this to save a little bit of memory.
+#define FLOG_CONFIG_MSG_ID_STRINGS_EXTENDED
+
+
 //! @def FLOG_CONFIG_ERRNO_STRINGS
 //! If defined, then setting msg_id to a valid libc errno will fetch the
 //! correct string from libc when outputing a string.
