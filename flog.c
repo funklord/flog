@@ -26,7 +26,7 @@ void init_flog_msg_t(FLOG_MSG_T *p)
 #endif
 #ifdef FLOG_CONFIG_SRC_INFO
 	//p->src_file=NULL;
-	p->src_line=-1;
+	//p->src_line=0;
 	//p->src_func=NULL;
 #endif
 	//p->subsystem=NULL;
@@ -45,7 +45,7 @@ FLOG_MSG_T * create_flog_msg_t(const char *subsystem,
                                FLOG_TIMESTAMP_T timestamp,
 #endif
 #ifdef FLOG_CONFIG_SRC_INFO
-                               const char *src_file,int src_line,const char *src_func,
+                               const char *src_file,uint_fast16_t src_line,const char *src_func,
 #endif
                                FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text)
 {
@@ -337,7 +337,7 @@ int flog_is_message_used(FLOG_T *p,FLOG_MSG_TYPE_T type)
 //! @see flog_print()
 int _flog_print(FLOG_T *p,const char *subsystem,
 #ifdef FLOG_CONFIG_SRC_INFO
-                const char *src_file,int src_line,const char *src_func,
+                const char *src_file,uint_fast16_t src_line,const char *src_func,
 #endif
                 FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text)
 {
@@ -405,7 +405,7 @@ int _flog_print(FLOG_T *p,const char *subsystem,
 //! @see flog_printf()
 int _flog_printf(FLOG_T *p,const char *subsystem,
 #ifdef FLOG_CONFIG_SRC_INFO
-                 const char *src_file,int src_line,const char *src_func,
+                 const char *src_file,uint_fast16_t src_line,const char *src_func,
 #endif
                  FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *textf, ...)
 {

@@ -146,11 +146,11 @@ int flog_get_str_msg_id(char **strp, const FLOG_MSG_ID_T msg_id)
 //! @param[in] src_line source line
 //! @param[in] *src_func source function
 //! @retval 0 success
-int flog_get_str_src_info(char **strp, const char *src_file, const int src_line, const char *src_func)
+int flog_get_str_src_info(char **strp, const char *src_file, const uint_fast16_t src_line, const char *src_func)
 {
 	*strp=NULL;
 	if(src_file) {
-		if(src_line!=-1) {
+		if(src_line) {
 			if(src_func) {
 				if(asprintf(strp,"%s:%d|%s()",src_file,(int)src_line,src_func)==-1) {
 					*strp=NULL;
@@ -174,7 +174,7 @@ int flog_get_str_src_info(char **strp, const char *src_file, const int src_line,
 			}
 		}
 	} else {
-		if(src_line!=-1) {
+		if(src_line) {
 			if(src_func) {
 				if(asprintf(strp,":%d|%s()",(int)src_line,src_func)==-1) {
 					*strp=NULL;

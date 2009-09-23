@@ -345,7 +345,7 @@ FLOG_MSG_T * create_flog_msg_t(const char *subsystem,
                                FLOG_TIMESTAMP_T timestamp,
 #endif
 #ifdef FLOG_CONFIG_SRC_INFO
-                               const char *src_file,int src_line,const char *src_func,
+                               const char *src_file,uint_fast16_t src_line,const char *src_func,
 #endif
                                FLOG_MSG_TYPE_T msg_type,FLOG_MSG_ID_T msg_id,const char *text);
 
@@ -360,8 +360,8 @@ void flog_clear_msg_buffer(FLOG_T *p);
 int flog_append_sublog(FLOG_T *p,FLOG_T *sublog);
 
 #ifdef FLOG_CONFIG_SRC_INFO
-int _flog_print(FLOG_T *p,const char *subsystem,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text);
-int _flog_printf(FLOG_T *p,const char *subsystem,const char *src_file,int src_line,const char *src_func,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *textf, ...);
+int _flog_print(FLOG_T *p,const char *subsystem,const char *src_file,uint_fast16_t src_line,const char *src_func,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text);
+int _flog_printf(FLOG_T *p,const char *subsystem,const char *src_file,uint_fast16_t src_line,const char *src_func,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *textf, ...);
 #else
 int _flog_print(FLOG_T *p,const char *subsystem,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text);
 int _flog_printf(FLOG_T *p,const char *subsystem,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *textf, ...);
