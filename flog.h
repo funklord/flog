@@ -260,7 +260,7 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 #ifdef DEBUG
 #define flog_dprint(p, subsystem, type, msg_id, text) flog_print(p,subsystem,type,msg_id,text)
 #else
-#define flog_dprint(p, subsystem, type, msg_id, text) (0)
+#define flog_dprint(p, subsystem, type, msg_id, text) (void)(0)
 #endif
 
 
@@ -271,7 +271,7 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 #ifdef DEBUG
 #define flog_dprintf(p, subsystem, type, msg_id, ...) flog_printf(p,subsystem,type,msg_id,__VA_ARGS__)
 #else
-#define flog_dprintf(p, subsystem, type, msg_id, ...) (0)
+#define flog_dprintf(p, subsystem, type, msg_id, ...) (void)(0)
 #endif
 
 
@@ -282,7 +282,7 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 #ifdef DEBUG
 #define flog_debug_function_start(p, subsystem) flog_function_start(p, subsystem)
 #else
-#define flog_debug_function_start(p, subsystem) (0)
+#define flog_debug_function_start(p, subsystem) (void)(0)
 #endif
 
 
@@ -293,7 +293,7 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 #ifdef DEBUG
 #define flog_debug_function_end(p, subsystem) flog_function_end(p, subsystem)
 #else
-#define flog_debug_function_end(p, subsystem) (0)
+#define flog_debug_function_end(p, subsystem) (void)(0)
 #endif
 
 
