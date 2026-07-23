@@ -95,12 +95,14 @@ FLOG_MSG_T * create_flog_msg_t(const char *subsystem,
 void destroy_flog_msg_t(FLOG_MSG_T *p)
 {
 	if(p) {
-		free(p->subsystem);
+		//This is the one site allowed to free these fields -- see FLOG_MSG_T's
+		//doc comment in flog.h. The cast is deliberate, not a workaround.
+		free((void *)p->subsystem);
 #ifdef FLOG_CONFIG_SRC_INFO
-		free(p->src_file);
-		free(p->src_func);
+		free((void *)p->src_file);
+		free((void *)p->src_func);
 #endif
-		free(p->text);
+		free((void *)p->text);
 		free(p);
 		p=NULL;
 	}
@@ -188,13 +190,11 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 	outmsg=*msg;
 
 	//append name to subsystem
-	int free_subsystem=0;
+	char *appended_subsystem=NULL;
 	if(p->name) {
 		if(outmsg.subsystem) {
-			char *tmpstr;
-			if(asprintf(&tmpstr,"%s/%s",p->name,outmsg.subsystem)!=-1) { //We don't care if we can't allocate memory
-				outmsg.subsystem = tmpstr;
-				free_subsystem=1;
+			if(asprintf(&appended_subsystem,"%s/%s",p->name,outmsg.subsystem)!=-1) { //We don't care if we can't allocate memory
+				outmsg.subsystem = appended_subsystem;
 			}
 		} else {
 			outmsg.subsystem=p->name;
@@ -237,8 +237,7 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 #endif
 
 	//if we allocated a string, free it
-	if(free_subsystem)
-		free(outmsg.subsystem);
+	free(appended_subsystem);
 
 	return(e);
 }
@@ -375,9 +374,6 @@ int _flog_print(FLOG_T *p,const char *subsystem,
 		msg.src_func = src_func;
 #endif //FLOG_CONFIG_SRC_INFO
 	msg.type = type;
-	msg.msg_id = msg_id;
-	if(text && text[0])
-		msg.text = text;
 
 	//Add message to log
 	if(flog_add_msg(p,&msg)) {

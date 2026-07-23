@@ -301,19 +301,28 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 
 
 //! Message structure - Holds all data related to a single message
+
+//! The string fields are `const` because most producers of a FLOG_MSG_T
+//! (_flog_print(), _flog_printf(), flog_add_msg()'s propagation to
+//! sublogs) borrow pointers they do not own (string literals, __FILE__/
+//! __FUNCTION__, a caller's buffer) rather than copying them -- only
+//! create_flog_msg_t()/destroy_flog_msg_t() form an owning pair (via
+//! strdup()/free()), and destroy_flog_msg_t() casts the const away
+//! explicitly at that one legitimate free site. Do not free these fields
+//! through any other path.
 typedef struct {
-	char *subsystem;                        //!< subsystem which is outputting the msg
+	const char *subsystem;                  //!< subsystem which is outputting the msg
 #ifdef FLOG_CONFIG_TIMESTAMP
 	FLOG_TIMESTAMP_T timestamp;             //!< timestamp
 #endif
 #ifdef FLOG_CONFIG_SRC_INFO
-	char *src_file;                         //!< source file emitting message
+	const char *src_file;                   //!< source file emitting message
 	uint_fast16_t src_line;                 //!< source line number emitting message
-	char *src_func;                         //!< source function emitting message
+	const char *src_func;                   //!< source function emitting message
 #endif
 	FLOG_MSG_TYPE_T type;                   //!< type of message
 	FLOG_MSG_ID_T msg_id;                   //!< message id (instead of, or with text) see flog_msg_id.h
-	char *text;                             //!< message text
+	const char *text;                       //!< message text
 } FLOG_MSG_T;
 
 
