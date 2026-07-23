@@ -10,7 +10,7 @@
 
 int main(void)
 {
-	FLOG_T *log_main,*log_subfunc;
+	flog_t *log_main,*log_subfunc;
 	printf("-[flog test start]-\n");
 
 	//create logs
@@ -20,7 +20,7 @@ int main(void)
 	log_subfunc->error_log=log_main;
 	flog_append_sublog(log_subfunc,log_main);
 #ifdef FLOG_CONFIG_OUTPUT_STDIO
-	FLOG_T *log_stdout,*log_stderr;
+	flog_t *log_stdout,*log_stderr;
 	log_stdout = create_flog_output_stdout("stdout",FLOG_ACCEPT_ONLY_ERROR);
 	log_stdout->error_log=log_main;
 	flog_append_sublog(log_main,log_stdout);
@@ -29,7 +29,7 @@ int main(void)
 	flog_append_sublog(log_main,log_stderr);
 #endif
 #ifdef FLOG_CONFIG_OUTPUT_FILE
-	FLOG_T *log_file;
+	flog_t *log_file;
 	log_file = create_flog_output_file("file",FLOG_ACCEPT_ALL,"test.log");
 	log_file->error_log=log_main;
 	flog_append_sublog(log_main,log_file);

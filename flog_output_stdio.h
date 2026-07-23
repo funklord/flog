@@ -24,11 +24,11 @@
 #error FLOG_CONFIG_OUTPUT_STDIO requires FLOG_CONFIG_ERRNO_STRINGS
 #endif
 
-int flog_output_stdout(FLOG_T *log,const FLOG_MSG_T *msg);
-int flog_output_stderr(FLOG_T *log,const FLOG_MSG_T *msg);
+int flog_output_stdout(flog_t *log,const flog_msg_t *msg);
+int flog_output_stderr(flog_t *log,const flog_msg_t *msg);
 
-FLOG_T * create_flog_output_stdout(const char *name, FLOG_MSG_TYPE_T accepted_msg_type);
-FLOG_T * create_flog_output_stderr(const char *name, FLOG_MSG_TYPE_T accepted_msg_type);
+flog_t * create_flog_output_stdout(const char *name, flog_msg_type_t accepted_msg_type);
+flog_t * create_flog_output_stderr(const char *name, flog_msg_type_t accepted_msg_type);
 
 #endif //FLOG_CONFIG_OUTPUT_STDIO
 

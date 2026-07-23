@@ -15,12 +15,12 @@
 #include "flog.h"
 
 
-//! initialise a FLOG_MSG_T to defaults
+//! initialise a flog_msg_t to defaults
 
 //! internal use only, or when extending flog
-void init_flog_msg_t(FLOG_MSG_T *p)
+void init_flog_msg_t(flog_msg_t *p)
 {
-	memset(p,0,sizeof(FLOG_MSG_T));
+	memset(p,0,sizeof(flog_msg_t));
 #ifdef FLOG_CONFIG_TIMESTAMP
 	//p->time=0;
 #endif
@@ -36,21 +36,21 @@ void init_flog_msg_t(FLOG_MSG_T *p)
 }
 
 
-//! create and return a FLOG_MSG_T type
+//! create and return a flog_msg_t type
 
 //! internal use only, or when creating flog output function
 //! @retval NULL error
-FLOG_MSG_T * create_flog_msg_t(const char *subsystem,
+flog_msg_t * create_flog_msg_t(const char *subsystem,
 #ifdef FLOG_CONFIG_TIMESTAMP
-                               FLOG_TIMESTAMP_T timestamp,
+                               flog_timestamp_t timestamp,
 #endif
 #ifdef FLOG_CONFIG_SRC_INFO
                                const char *src_file,uint_fast16_t src_line,const char *src_func,
 #endif
-                               FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text)
+                               flog_msg_type_t type,flog_msg_id_t msg_id,const char *text)
 {
-	FLOG_MSG_T *p;
-	if((p=malloc(sizeof(FLOG_MSG_T)))!=NULL) {
+	flog_msg_t *p;
+	if((p=malloc(sizeof(flog_msg_t)))!=NULL) {
 		init_flog_msg_t(p);
 		p->type=type;
 		if(subsystem && subsystem[0]) {
@@ -89,13 +89,13 @@ FLOG_MSG_T * create_flog_msg_t(const char *subsystem,
 }
 
 
-//! free a FLOG_MSG_T
+//! free a flog_msg_t
 
 //! internal use only, or when creating flog output function
-void destroy_flog_msg_t(FLOG_MSG_T *p)
+void destroy_flog_msg_t(flog_msg_t *p)
 {
 	if(p) {
-		//This is the one site allowed to free these fields -- see FLOG_MSG_T's
+		//This is the one site allowed to free these fields -- see flog_msg_t's
 		//doc comment in flog.h. The cast is deliberate, not a workaround.
 		free((void *)p->subsystem);
 #ifdef FLOG_CONFIG_SRC_INFO
@@ -109,12 +109,12 @@ void destroy_flog_msg_t(FLOG_MSG_T *p)
 }
 
 
-//! initialise a FLOG_T to defaults
+//! initialise a flog_t to defaults
 
 //! mainly internal use, or when extending flog
-void init_flog_t(FLOG_T *p)
+void init_flog_t(flog_t *p)
 {
-	memset(p,0,sizeof(FLOG_T));
+	memset(p,0,sizeof(flog_t));
 	//p->name=NULL;
 	p->accepted_msg_type=FLOG_ACCEPT_ALL;
 	//p->output_func=NULL;
@@ -130,13 +130,13 @@ void init_flog_t(FLOG_T *p)
 }
 
 
-//! create and return a FLOG_T type
+//! create and return a flog_t type
 
 //! @retval NULL error
-FLOG_T * create_flog_t(const char *name, FLOG_MSG_TYPE_T accepted_msg_type)
+flog_t * create_flog_t(const char *name, flog_msg_type_t accepted_msg_type)
 {
-	FLOG_T *p;
-	if((p=malloc(sizeof(FLOG_T)))!=NULL) {
+	flog_t *p;
+	if((p=malloc(sizeof(flog_t)))!=NULL) {
 		init_flog_t(p);
 		p->accepted_msg_type=accepted_msg_type;
 		if(name && name[0]) {
@@ -150,8 +150,8 @@ FLOG_T * create_flog_t(const char *name, FLOG_MSG_TYPE_T accepted_msg_type)
 }
 
 
-//! free a FLOG_T
-void destroy_flog_t(FLOG_T *p)
+//! free a flog_t
+void destroy_flog_t(flog_t *p)
 {
 	if(p) {
 		free(p->name);
@@ -173,20 +173,20 @@ int stack_depth;
 #endif
 
 
-//! add a FLOG_MSG_T to FLOG_T and do all required logic (used by flog_print[f] functions)
+//! add a flog_msg_t to flog_t and do all required logic (used by flog_print[f] functions)
 
 //! internal use only, or when extending flog
 //! @param[in,out] *p target log
 //! @param[in] *msg message to add
 //! @retval 0 success
-int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
+int flog_add_msg(flog_t *p,flog_msg_t *msg)
 {
 	//compare if accepted message type
 	if(!(msg->type & p->accepted_msg_type))
 		return(0);
 
-	//copy the input msg into a FLOG_MSG_T struct
-	FLOG_MSG_T outmsg;
+	//copy the input msg into a flog_msg_t struct
+	flog_msg_t outmsg;
 	outmsg=*msg;
 
 	//append name to subsystem
@@ -204,8 +204,8 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 	//! @todo add message to buffer
 	/*
 	if(p->msg_amount<p->msg_max) {
-		FLOG_MSG_T **new_msg;
-		if((new_msg=realloc(p->msg,(p->msg_amount+1)*sizeof(FLOG_MSG_T *)))!=NULL) {
+		flog_msg_t **new_msg;
+		if((new_msg=realloc(p->msg,(p->msg_amount+1)*sizeof(flog_msg_t *)))!=NULL) {
 			p->msg=new_msg;
 			p->msg[p->msg_amount]=msg;
 			p->msg_amount++;
@@ -244,7 +244,7 @@ int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg)
 
 
 //! clear all messages stored in log
-void flog_clear_msg_buffer(FLOG_T *p)
+void flog_clear_msg_buffer(flog_t *p)
 {
 	if(p && p->msg) {
 		uint_fast16_t i;
@@ -262,7 +262,7 @@ void flog_clear_msg_buffer(FLOG_T *p)
 //! @param[in,out] *p target log
 //! @param[in] *sublog log to add
 //! @retval 0 success
-int flog_append_sublog(FLOG_T *p,FLOG_T *sublog)
+int flog_append_sublog(flog_t *p,flog_t *sublog)
 {
 	if(!p)
 		return(1);
@@ -270,8 +270,8 @@ int flog_append_sublog(FLOG_T *p,FLOG_T *sublog)
 		flog_print(p->error_log,NULL,FLOG_ERROR,0,"cannot append log to itself (causes circular dependency)");
 		return(1);
 	}
-	FLOG_T **new_sublog;
-	if((new_sublog=realloc(p->sublog,(p->sublog_amount+1)*sizeof(FLOG_T *)))==NULL)
+	flog_t **new_sublog;
+	if((new_sublog=realloc(p->sublog,(p->sublog_amount+1)*sizeof(flog_t *)))==NULL)
 		return(1);
 	p->sublog=new_sublog;
 	p->sublog[p->sublog_amount]=sublog;
@@ -287,7 +287,7 @@ int flog_append_sublog(FLOG_T *p,FLOG_T *sublog)
 //! @param[in] type the type from message
 //! @retval 0 Message is never used
 //! @retval 1 Message is used
-int flog_is_message_used(FLOG_T *p,FLOG_MSG_TYPE_T type)
+int flog_is_message_used(flog_t *p,flog_msg_type_t type)
 {
 	if(type & p->accepted_msg_type) {
 		if(p->msg_amount<p->msg_max)
@@ -334,11 +334,11 @@ int flog_is_message_used(FLOG_T *p,FLOG_MSG_TYPE_T type)
 //! @retval 2 error unable to get time
 //! @retval 3 did not add null message (flog is configured not to allow null messages)
 //! @see flog_print()
-int _flog_print(FLOG_T *p,const char *subsystem,
+int _flog_print(flog_t *p,const char *subsystem,
 #ifdef FLOG_CONFIG_SRC_INFO
                 const char *src_file,uint_fast16_t src_line,const char *src_func,
 #endif
-                FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text)
+                flog_msg_type_t type,flog_msg_id_t msg_id,const char *text)
 {
 	if(!p)
 		return(1);
@@ -346,8 +346,8 @@ int _flog_print(FLOG_T *p,const char *subsystem,
 	if(!flog_is_message_used(p,type))
 		return(0);
 
-	//Convert the input into a FLOG_MSG_T struct
-	FLOG_MSG_T msg;
+	//Convert the input into a flog_msg_t struct
+	flog_msg_t msg;
 	init_flog_msg_t(&msg);
 	msg.msg_id = msg_id;
 	if(text && text[0])
@@ -399,11 +399,11 @@ int _flog_print(FLOG_T *p,const char *subsystem,
 //! @retval 2 error unable to get time
 //! @retval 3 did not add null message (flog is configured not to allow null messages)
 //! @see flog_printf()
-int _flog_printf(FLOG_T *p,const char *subsystem,
+int _flog_printf(flog_t *p,const char *subsystem,
 #ifdef FLOG_CONFIG_SRC_INFO
                  const char *src_file,uint_fast16_t src_line,const char *src_func,
 #endif
-                 FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *textf, ...)
+                 flog_msg_type_t type,flog_msg_id_t msg_id,const char *textf, ...)
 {
 	if(!p)
 		return(1);
@@ -419,8 +419,8 @@ int _flog_printf(FLOG_T *p,const char *subsystem,
 		return(1);
 	va_end(ap);
 
-	//Convert the input into a FLOG_MSG_T struct
-	FLOG_MSG_T msg;
+	//Convert the input into a flog_msg_t struct
+	flog_msg_t msg;
 	init_flog_msg_t(&msg);
 	msg.msg_id = msg_id;
 	if(text && text[0])
@@ -460,7 +460,7 @@ int _flog_printf(FLOG_T *p,const char *subsystem,
 
 #ifdef DEBUG
 //! Test various flog features
-void flog_test(FLOG_T *p)
+void flog_test(flog_t *p)
 {
 	flog_printf(p,__func__,FLOG_NONE,0,"This is a test message with FLOG_NONE (0x%02x) as type - This message should NEVER be visible",FLOG_NONE);
 	flog_printf(p,__func__,FLOG_CRIT,0,"This is a test message with FLOG_CRIT (0x%02x) as type",FLOG_CRIT);

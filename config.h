@@ -14,7 +14,7 @@
 
 //! @def FLOG_CONFIG_MSG_TYPE_ENUM_API
 //! If defined, allows using an enum API for flog message types.
-//! What this means is that FLOG_MSG_TYPE_T will be defined as an int
+//! What this means is that flog_msg_type_t will be defined as an int
 //! (instead of unsigned char) In return, enums may yield stronger
 //! type checking and therefore easier debugging.
 #define FLOG_CONFIG_MSG_TYPE_ENUM_API
@@ -24,7 +24,7 @@
 //! If defined, this option is used by the recursive functions flog_add_msg()
 //! and flog_is_message_used(). It specifies the maximum stack depth they
 //! are allowed to reach and thereby indirectly setting a limit on the
-//! stack usage of flog. Usually each stack level allocates a FLOG_T struct
+//! stack usage of flog. Usually each stack level allocates a flog_t struct
 //! and a couple of arguments. To avoid infinite recursion caused by circular
 //! sublog structures, set this to a sane value like 8-32.
 #define FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH 16

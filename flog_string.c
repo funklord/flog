@@ -25,7 +25,7 @@
 //! @param[out] **strp string to set (NULL on error)
 //! @param[in] ts timestamp
 //! @retval 0 success
-int flog_get_str_iso_timestamp(char **strp, const FLOG_TIMESTAMP_T ts)
+int flog_get_str_iso_timestamp(char **strp, const flog_timestamp_t ts)
 {
 	struct tm ts_tm;
 #ifdef FLOG_CONFIG_TIMESTAMP_USEC
@@ -48,7 +48,7 @@ int flog_get_str_iso_timestamp(char **strp, const FLOG_TIMESTAMP_T ts)
 //! @param[out] **strp string to set (NULL on error)
 //! @param[in] type type of message
 //! @retval 0 success
-int flog_get_str_msg_type(char **strp, const FLOG_MSG_TYPE_T type)
+int flog_get_str_msg_type(char **strp, const flog_msg_type_t type)
 {
 	*strp=NULL;
 	switch(type)
@@ -98,7 +98,7 @@ extern const char *flog_msg_id_str[];
 //! @param[out] **strp string to set (NULL on error)
 //! @param[in] msg_id message ID type
 //! @retval 0 success
-int flog_get_str_msg_id(char **strp, const FLOG_MSG_ID_T msg_id)
+int flog_get_str_msg_id(char **strp, const flog_msg_id_t msg_id)
 {
 	*strp=NULL;
 	if(msg_id==0)
@@ -207,7 +207,7 @@ int flog_get_str_src_info(char **strp, const char *src_file, const uint_fast16_t
 //! @param[out] **strp string to set (NULL on error)
 //! @param[in] *p flog message type
 //! @retval 0 success
-int flog_get_str_message_header(char **strp, const FLOG_MSG_T *p)
+int flog_get_str_message_header(char **strp, const flog_msg_t *p)
 {
 	*strp=NULL;
 #ifdef FLOG_CONFIG_TIMESTAMP
@@ -320,7 +320,7 @@ int flog_get_str_message_header(char **strp, const FLOG_MSG_T *p)
 //! @param[in] msg_id msg ID
 //! @param[in] *text custom message string
 //! @retval 0 success
-int flog_get_str_message_content(char **strp, const FLOG_MSG_TYPE_T type, const FLOG_MSG_ID_T msg_id, const char *text)
+int flog_get_str_message_content(char **strp, const flog_msg_type_t type, const flog_msg_id_t msg_id, const char *text)
 {
 	char *str_type,*str_msg_id;
 	*strp=NULL;
@@ -390,12 +390,12 @@ int flog_get_str_message_content(char **strp, const FLOG_MSG_TYPE_T type, const 
 }
 
 
-//! Create and return a string from FLOG_MSG_T type
+//! Create and return a string from flog_msg_t type
 
 //! @param[out] **strp string to set (NULL on error)
 //! @param[in] *p flog message struct
 //! @retval 0 success
-int flog_get_str_message(char **strp, const FLOG_MSG_T *p)
+int flog_get_str_message(char **strp, const flog_msg_t *p)
 {
 	char *str_msg_header, *str_msg_content;
 	*strp=NULL;
@@ -438,7 +438,7 @@ int flog_get_str_message(char **strp, const FLOG_MSG_T *p)
 
 
 /*
-char * flog_msg_t_to_str(const FLOG_MSG_T *p)
+char * flog_msg_t_to_str(const flog_msg_t *p)
 {
 	char *str,*typestr;
 	typestr=flog_get_msg_type_str(p->type);

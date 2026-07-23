@@ -21,19 +21,19 @@
 #ifdef FLOG_CONFIG_TIMESTAMP_USEC
 #include <sys/time.h>
 #include <time.h>
-typedef struct timeval FLOG_TIMESTAMP_T;
+typedef struct timeval flog_timestamp_t;
 #else //FLOG_CONFIG_TIMESTAMP_USEC
 #include <time.h>
-typedef time_t FLOG_TIMESTAMP_T;
+typedef time_t flog_timestamp_t;
 #endif //FLOG_CONFIG_TIMESTAMP_USEC
 #endif //FLOG_CONFIG_TIMESTAMP
 
 
 #ifdef FLOG_CONFIG_MSG_TYPE_ENUM_API
 
-//! @addtogroup FLOG_MSG_TYPE_T
+//! @addtogroup flog_msg_type_t
 //! @brief Types of messages supported by FLOG
-//! @details Use where ever a @ref FLOG_MSG_TYPE_T is referred
+//! @details Use where ever a @ref flog_msg_type_t is referred
 //! @{
 
 typedef enum flog_msg_type {
@@ -76,19 +76,19 @@ typedef enum flog_msg_type {
 	FLOG_ACCEPT_DEBUG             = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG,
 	FLOG_ACCEPT_DEEP_DEBUG        = FLOG_CRIT | FLOG_ERR | FLOG_WARN | FLOG_NOTE | FLOG_INFO | FLOG_VINFO | FLOG_DEBUG | FLOG_DEEP_DEBUG,
 	FLOG_ACCEPT_ALL               = FLOG_ACCEPT_DEBUG
-} FLOG_MSG_TYPE_T;
+} flog_msg_type_t;
 
 //! @}
 
 #else //FLOG_CONFIG_MSG_TYPE_ENUM_API
 
 
-//! @addtogroup FLOG_MSG_TYPE_T
+//! @addtogroup flog_msg_type_t
 //! @brief Types of messages supported by FLOG
-//! @details Use where ever a @ref FLOG_MSG_TYPE_T is referred
+//! @details Use where ever a @ref flog_msg_type_t is referred
 //! @{
 
-typedef uint_fast8_t FLOG_MSG_TYPE_T;
+typedef uint_fast8_t flog_msg_type_t;
 
 //! Nothing
 #define FLOG_NONE         0x00
@@ -134,7 +134,7 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 
 //! @addtogroup FLOG_ACCEPT_BITMASKS
 //! @brief Bitmasks for filtering messages
-//! @details Set the variable @ref FLOG_T->accepted_message_type
+//! @details Set the variable @ref flog_t->accepted_message_type
 //! @{
 
 //! Bitmask to accept only critical
@@ -302,7 +302,7 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 
 //! Message structure - Holds all data related to a single message
 
-//! The string fields are `const` because most producers of a FLOG_MSG_T
+//! The string fields are `const` because most producers of a flog_msg_t
 //! (_flog_print(), _flog_printf(), flog_add_msg()'s propagation to
 //! sublogs) borrow pointers they do not own (string literals, __FILE__/
 //! __FUNCTION__, a caller's buffer) rather than copying them -- only
@@ -313,71 +313,71 @@ typedef uint_fast8_t FLOG_MSG_TYPE_T;
 typedef struct {
 	const char *subsystem;                  //!< subsystem which is outputting the msg
 #ifdef FLOG_CONFIG_TIMESTAMP
-	FLOG_TIMESTAMP_T timestamp;             //!< timestamp
+	flog_timestamp_t timestamp;             //!< timestamp
 #endif
 #ifdef FLOG_CONFIG_SRC_INFO
 	const char *src_file;                   //!< source file emitting message
 	uint_fast16_t src_line;                 //!< source line number emitting message
 	const char *src_func;                   //!< source function emitting message
 #endif
-	FLOG_MSG_TYPE_T type;                   //!< type of message
-	FLOG_MSG_ID_T msg_id;                   //!< message id (instead of, or with text) see flog_msg_id.h
+	flog_msg_type_t type;                   //!< type of message
+	flog_msg_id_t msg_id;                   //!< message id (instead of, or with text) see flog_msg_id.h
 	const char *text;                       //!< message text
-} FLOG_MSG_T;
+} flog_msg_t;
 
 
-//! Main log structure - typedefined as @ref FLOG_T
+//! Main log structure - typedefined as @ref flog_t
 
 //! These can be appended to each other in a tree structure (by using flog_append_sublog())
 //! to form good flow and structure in software.
 //! Sublogs are created for 3 main purposes: namespacing, multiple outputs and filtering
 typedef struct flog_t {
 	char *name;                             //!< name of log
-	FLOG_MSG_TYPE_T accepted_msg_type;      //!< bitmask of which messages to accept
-	int (*output_func)(struct flog_t *,const FLOG_MSG_T *); //!< function to output messages to
+	flog_msg_type_t accepted_msg_type;      //!< bitmask of which messages to accept
+	int (*output_func)(struct flog_t *,const flog_msg_t *); //!< function to output messages to
 	void *output_func_data;                 //!< data passed to output func
 	uint_fast16_t output_error;             //!< errors occurred on output
 	uint_fast8_t output_stop_on_error;      //!< stop outputting messages on error
 	struct flog_t *error_log;               //!< error log for flog errors
-	FLOG_MSG_T **msg;                       //!< array of messages
+	flog_msg_t **msg;                       //!< array of messages
 	uint_fast16_t msg_amount;               //!< amount of messages in array
 	uint_fast16_t msg_max;                  //!< maximum amount of buffered messages
 	struct flog_t **sublog;                 //!< array of sublogs
 	uint_fast8_t sublog_amount;             //!< amount of sublogs in array
-} FLOG_T;
+} flog_t;
 
 
-void init_flog_msg_t(FLOG_MSG_T *p);
+void init_flog_msg_t(flog_msg_t *p);
 
-FLOG_MSG_T * create_flog_msg_t(const char *subsystem,
+flog_msg_t * create_flog_msg_t(const char *subsystem,
 #ifdef FLOG_CONFIG_TIMESTAMP
-                               FLOG_TIMESTAMP_T timestamp,
+                               flog_timestamp_t timestamp,
 #endif
 #ifdef FLOG_CONFIG_SRC_INFO
                                const char *src_file,uint_fast16_t src_line,const char *src_func,
 #endif
-                               FLOG_MSG_TYPE_T msg_type,FLOG_MSG_ID_T msg_id,const char *text);
+                               flog_msg_type_t msg_type,flog_msg_id_t msg_id,const char *text);
 
-void destroy_flog_msg_t(FLOG_MSG_T *p);
+void destroy_flog_msg_t(flog_msg_t *p);
 
-void init_flog_t(FLOG_T *p);
-FLOG_T * create_flog_t(const char *name, FLOG_MSG_TYPE_T accepted_msg_type);
-void destroy_flog_t(FLOG_T *p);
+void init_flog_t(flog_t *p);
+flog_t * create_flog_t(const char *name, flog_msg_type_t accepted_msg_type);
+void destroy_flog_t(flog_t *p);
 
-int flog_add_msg(FLOG_T *p,FLOG_MSG_T *msg);
-void flog_clear_msg_buffer(FLOG_T *p);
-int flog_append_sublog(FLOG_T *p,FLOG_T *sublog);
+int flog_add_msg(flog_t *p,flog_msg_t *msg);
+void flog_clear_msg_buffer(flog_t *p);
+int flog_append_sublog(flog_t *p,flog_t *sublog);
 
 #ifdef FLOG_CONFIG_SRC_INFO
-int _flog_print(FLOG_T *p,const char *subsystem,const char *src_file,uint_fast16_t src_line,const char *src_func,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text);
-int _flog_printf(FLOG_T *p,const char *subsystem,const char *src_file,uint_fast16_t src_line,const char *src_func,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *textf, ...);
+int _flog_print(flog_t *p,const char *subsystem,const char *src_file,uint_fast16_t src_line,const char *src_func,flog_msg_type_t type,flog_msg_id_t msg_id,const char *text);
+int _flog_printf(flog_t *p,const char *subsystem,const char *src_file,uint_fast16_t src_line,const char *src_func,flog_msg_type_t type,flog_msg_id_t msg_id,const char *textf, ...);
 #else
-int _flog_print(FLOG_T *p,const char *subsystem,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *text);
-int _flog_printf(FLOG_T *p,const char *subsystem,FLOG_MSG_TYPE_T type,FLOG_MSG_ID_T msg_id,const char *textf, ...);
+int _flog_print(flog_t *p,const char *subsystem,flog_msg_type_t type,flog_msg_id_t msg_id,const char *text);
+int _flog_printf(flog_t *p,const char *subsystem,flog_msg_type_t type,flog_msg_id_t msg_id,const char *textf, ...);
 #endif
 
 #ifdef DEBUG
-void flog_test(FLOG_T *p);
+void flog_test(flog_t *p);
 #endif
 
 #endif

@@ -81,7 +81,7 @@ typedef enum {
 	FLOG_MSG_ID_LOWERBOUND = (FLOG_MSG_ID_AMOUNT_RESERVED_FOR_ERRNO-1),
 	FLOG_MSG_IDS
 	FLOG_MSG_ID_AMOUNT
-} FLOG_MSG_ID_T;
+} flog_msg_id_t;
 #undef X
 
 

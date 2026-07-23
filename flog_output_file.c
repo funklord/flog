@@ -22,7 +22,7 @@
 //! filename is stored in log.output_func_data as a string
 
 //! @retval 0 success
-int flog_output_file(FLOG_T *log,const FLOG_MSG_T *msg)
+int flog_output_file(flog_t *log,const flog_msg_t *msg)
 {
 	if(log->output_func_data==NULL) {
 		log->output_error=-1;
@@ -60,9 +60,9 @@ int flog_output_file(FLOG_T *log,const FLOG_MSG_T *msg)
 //! create and return a log that writes to file
 
 //! @retval NULL error
-FLOG_T * create_flog_output_file(const char *name, FLOG_MSG_TYPE_T accepted_msg_type, const char *filename)
+flog_t * create_flog_output_file(const char *name, flog_msg_type_t accepted_msg_type, const char *filename)
 {
-	FLOG_T *p;
+	flog_t *p;
 	if((p=create_flog_t(name,accepted_msg_type))==NULL)
 		return(NULL);
 	p->output_func=flog_output_file;
@@ -76,8 +76,8 @@ FLOG_T * create_flog_output_file(const char *name, FLOG_MSG_TYPE_T accepted_msg_
 }
 
 
-//! free an output_file FLOG_T
-void destroy_flog_output_file(FLOG_T *p)
+//! free an output_file flog_t
+void destroy_flog_output_file(flog_t *p)
 {
 	if(p!=NULL) {
 		free(p->output_func_data);

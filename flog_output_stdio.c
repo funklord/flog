@@ -20,7 +20,7 @@
 //! Output function for log output to stdout
 
 //! @retval 0 success
-int flog_output_stdout(FLOG_T *log,const FLOG_MSG_T *msg)
+int flog_output_stdout(flog_t *log,const flog_msg_t *msg)
 {
 	char *str;
 	if(flog_get_str_message(&str,msg))
@@ -39,7 +39,7 @@ int flog_output_stdout(FLOG_T *log,const FLOG_MSG_T *msg)
 //! Output function for log output to stderr
 
 //! @retval 0 success
-int flog_output_stderr(FLOG_T *log,const FLOG_MSG_T *msg)
+int flog_output_stderr(flog_t *log,const flog_msg_t *msg)
 {
 	char *str;
 	if(flog_get_str_message(&str,msg))
@@ -58,9 +58,9 @@ int flog_output_stderr(FLOG_T *log,const FLOG_MSG_T *msg)
 //! create and return a log that writes to stdout
 
 //! @retval NULL error
-FLOG_T * create_flog_output_stdout(const char *name, FLOG_MSG_TYPE_T accepted_msg_type)
+flog_t * create_flog_output_stdout(const char *name, flog_msg_type_t accepted_msg_type)
 {
-	FLOG_T *p;
+	flog_t *p;
 	if((p=create_flog_t(name,accepted_msg_type))==NULL)
 		return(NULL);
 	p->output_func=flog_output_stdout;
@@ -71,9 +71,9 @@ FLOG_T * create_flog_output_stdout(const char *name, FLOG_MSG_TYPE_T accepted_ms
 //! create and return a log that writes to stderr
 
 //! @retval NULL error
-FLOG_T * create_flog_output_stderr(const char *name, FLOG_MSG_TYPE_T accepted_msg_type)
+flog_t * create_flog_output_stderr(const char *name, flog_msg_type_t accepted_msg_type)
 {
-	FLOG_T *p;
+	flog_t *p;
 	if((p=create_flog_t(name,accepted_msg_type))==NULL)
 		return(NULL);
 	p->output_func=flog_output_stderr;
