@@ -20,7 +20,7 @@ SRC = flog_msg_id.c flog.c flog_string.c flog_output_stdio.c flog_output_file.c
 OBJ = $(SRC:.c=.o)
 
 ##Rules
-.PHONY : all lib clean distclean valgrind_test
+.PHONY : all lib clean distclean valgrind_test check
 
 all: lib
 
@@ -35,6 +35,14 @@ $(LIB): $(OBJ) $(HEADER)
 test: $(LIB) $(HEADER) test.o
 	$(CC) $(LDFLAGS) test.o $(LIB) -o $@
 
+test_pool: $(LIB) $(HEADER) test_pool.o
+	$(CC) $(LDFLAGS) test_pool.o $(LIB) -o $@
+
+#! Runs the assertions. `test` is the demonstration program and prints for a
+#! person to read; this returns non-zero when something is wrong.
+check: test_pool
+	./test_pool
+
 doxygen: Doxyfile $(SRC) $(HEADER)
 	$(DOXYGEN)
 
@@ -42,7 +50,7 @@ valgrind_test: test
 	$(VALGRIND) ./$<
 
 clean:
-	$(RM) $(OBJ) $(LIB) test.o test
+	$(RM) $(OBJ) $(LIB) test.o test test_pool.o test_pool
 
 distclean: clean
 	$(RM) -r doxygen
