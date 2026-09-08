@@ -10,12 +10,52 @@
 #ifndef FLOG_H
 #define FLOG_H
 
-//! We need asprintf() for flog.c and flog_string.c
+//! asprintf() is a GNU extension, so ask for it before any system header is
+//! pulled in. Harmless where it means nothing.
 #define _GNU_SOURCE
 
 #include "config.h"
 #include "flog_msg_id.h"
+//! stdio.h is included here for its side effect as much as its contents: it
+//! is what brings in the libc's own identification macros, and the test below
+//! cannot ask which libc this is until one of its headers has been read.
+#include <stdio.h>
+#include <stdarg.h>
 #include <stdint.h>
+
+//! @def FLOG_HAVE_ASPRINTF
+//! Whether the platform supplies asprintf() and vasprintf().
+//!
+//! DETECTED RATHER THAN CONFIGURED, because the platform already knows and a
+//! hand-edited switch is a second place for the same fact to be wrong. Where
+//! the system has them flog uses the system's; where it does not, flog
+//! supplies its own out of C99 alone (see flog.c).
+//!
+//! They are a GNU extension that the BSDs also carry, and POSIX did not
+//! specify them until POSIX.1-2024 -- so a strict C99 target, or an older
+//! POSIX one, is the case the fallback exists for.
+//!
+//! Define FLOG_HAVE_ASPRINTF or FLOG_NO_ASPRINTF ahead of this header to
+//! settle it by hand where the detection is wrong. Getting it wrong in the
+//! quiet direction costs nothing but flog's own implementation being used on
+//! a platform that had one.
+#if !defined(FLOG_HAVE_ASPRINTF) && !defined(FLOG_NO_ASPRINTF)
+#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || \
+    defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__) || \
+    defined(__BIONIC__) || defined(__CYGWIN__) || \
+    (defined(_POSIX_VERSION) && _POSIX_VERSION >= 202405L)
+#define FLOG_HAVE_ASPRINTF
+#endif
+#endif
+
+#ifndef FLOG_HAVE_ASPRINTF
+//! Supplied by flog where the platform has none. Same contract as GNU
+//! asprintf(): on success a newly allocated NUL-terminated string is stored
+//! in *strp and its length excluding the terminator returned; on failure -1
+//! is returned and *strp is not touched.
+int asprintf(char **strp, const char *fmt, ...);
+int vasprintf(char **strp, const char *fmt, va_list ap);
+#endif //FLOG_HAVE_ASPRINTF
 
 #ifdef FLOG_CONFIG_TIMESTAMP
 #ifdef FLOG_CONFIG_TIMESTAMP_USEC

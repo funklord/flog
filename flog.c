@@ -15,6 +15,62 @@
 #include "flog.h"
 
 
+#ifndef FLOG_HAVE_ASPRINTF
+
+//! @brief vasprintf() for platforms without one
+//!
+//! Every use of asprintf() in flog is the same shape: format a short string
+//! and allocate exactly enough to hold it. C99 says vsnprintf() returns the
+//! length it WOULD have written when given a null buffer and a size of zero,
+//! which is that operation with no extension involved -- so the fallback
+//! needs nothing the language does not already promise.
+//!
+//! The va_list is copied before the measuring pass, because a va_list may not
+//! be reused after being passed to a vprintf-family call. Measuring with the
+//! caller's own list and then formatting with it again is undefined, and it
+//! happens to work on x86-64 while failing on other calling conventions,
+//! which is the worst way for it to be wrong.
+//!
+//! @param[out] **strp receives the allocated string on success
+//! @param[in] *fmt printf format string
+//! @param[in] ap arguments for fmt
+//! @retval -1 failure, *strp untouched
+int vasprintf(char **strp, const char *fmt, va_list ap)
+{
+	va_list measure;
+	va_copy(measure,ap);
+	int len=vsnprintf(NULL,0,fmt,measure);
+	va_end(measure);
+	if(len<0)
+		return(-1);
+	char *buf=malloc((size_t)len+1);
+	if(buf==NULL)
+		return(-1);
+	int written=vsnprintf(buf,(size_t)len+1,fmt,ap);
+	if(written<0) {
+		free(buf);
+		return(-1);
+	}
+	*strp=buf;
+	return(written);
+}
+
+//! @brief asprintf() for platforms without one
+//! @param[out] **strp receives the allocated string on success
+//! @param[in] *fmt printf format string
+//! @retval -1 failure, *strp untouched
+int asprintf(char **strp, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap,fmt);
+	int rc=vasprintf(strp,fmt,ap);
+	va_end(ap);
+	return(rc);
+}
+
+#endif //FLOG_HAVE_ASPRINTF
+
+
 //! initialise a flog_msg_t to defaults
 
 //! internal use only, or when extending flog
