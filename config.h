@@ -30,6 +30,90 @@
 #define FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH 16
 
 
+//! @def FLOG_CONFIG_ALLOCATION
+//! If defined, flog may allocate. If not defined -- the default -- flog's
+//! MESSAGE PATH performs no allocation: text is formatted into a fixed
+//! buffer, the subsystem path is composed in place, sublogs are an intrusive
+//! list, and a flog_t or flog_msg_t lives wherever the caller puts it.
+//!
+//! The whole library, not just the message path: with this undefined, `nm`
+//! shows no reference to malloc, calloc, realloc, free, strdup, asprintf or
+//! vasprintf in any of flog's objects.
+//!
+//! THE API IS THE SAME EITHER WAY. create_flog_t(), destroy_flog_t(), the
+//! output constructors and the print macros keep their signatures and their
+//! meaning; without an allocator the storage comes from fixed pools instead
+//! of the heap, and an exhausted pool returns NULL exactly as a failed
+//! malloc did. A program is written once and builds both ways.
+//!
+//! OFF BY DEFAULT, which is the deliberate part. A logger is the thing a
+//! program reaches for when something has already gone wrong, and "already
+//! gone wrong" includes being out of memory. It is also the piece most often
+//! wanted on a target that has no allocator to offer, and by a library whose
+//! own design is caller-owned storage and which cannot take a dependency
+//! that mallocs behind its back.
+//!
+//! What is lost is unbounded message text: with allocation off, text longer
+//! than FLOG_CONFIG_TEXT_MAX is truncated rather than growing a buffer.
+//! Nothing else changes -- sublog trees, filtering, message ids, timestamps,
+//! source info and the output plugins all work the same.
+//#define FLOG_CONFIG_ALLOCATION
+
+
+//! @def FLOG_CONFIG_MSG_BUFFER
+//! If defined, a flog_t may hold messages in a buffer rather than passing
+//! each to its output function immediately. Requires FLOG_CONFIG_ALLOCATION.
+//!
+//! BUFFERING IS THE ONLY PLACE FLOG ALLOCATES, and that is the whole shape of
+//! the rule rather than a coincidence. A message passed straight to an output
+//! borrows its strings from the caller's stack and is done with them before
+//! the call returns. A message KEPT outlives the frame that made it, so its
+//! strings have to be owned, and owning them is what needs an allocator.
+//! Everything else flog does can be answered from fixed storage.
+//!
+//! So the two options are not independent: asking for buffering is asking for
+//! allocation, and turning allocation off turns buffering off with it.
+//#define FLOG_CONFIG_MSG_BUFFER
+
+
+//! @def FLOG_CONFIG_MAX_LOGS
+//! How many flog_t objects create_flog_t() can hand out when not allocating.
+//!
+//! THE API IS THE SAME EITHER WAY, which is the point of a pool rather than
+//! a second set of functions. create_flog_t() and destroy_flog_t() mean the
+//! same thing and have the same signatures in both configurations; what
+//! changes is where the storage comes from. A consumer writes one program
+//! and it builds on a target with an allocator and on one without.
+//!
+//! Exhausting the pool returns NULL, which is exactly what create_flog_t()
+//! already does when malloc fails, so callers need no new error path.
+#define FLOG_CONFIG_MAX_LOGS 16
+
+
+//! @def FLOG_CONFIG_NAME_MAX
+//! Longest log name kept when not allocating, including the terminator.
+#define FLOG_CONFIG_NAME_MAX 32
+
+
+//! @def FLOG_CONFIG_FILENAME_MAX
+//! Longest output filename kept when not allocating, including the
+//! terminator.
+#define FLOG_CONFIG_FILENAME_MAX 128
+
+
+//! @def FLOG_CONFIG_TEXT_MAX
+//! Longest message text flog will format when not allocating, including the
+//! terminator. Text beyond this is truncated.
+#define FLOG_CONFIG_TEXT_MAX 512
+
+
+//! @def FLOG_CONFIG_STR_MAX
+//! Longest rendered message line flog will build when not allocating,
+//! including the terminator. This bounds the whole formatted output line:
+//! timestamp, source info, subsystem, type and text together.
+#define FLOG_CONFIG_STR_MAX 1024
+
+
 //! @def FLOG_CONFIG_ABORT_ON_ASSERT
 //! If defined then flog_assert() will call abort() on assertion failure.
 //! This behaviour can be switched off for deeply embedded systems where

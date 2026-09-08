@@ -26,9 +26,11 @@
 #endif
 
 int flog_output_file(flog_t *log,const flog_msg_t *msg);
+void init_flog_output_file(flog_t *p, const char *name, flog_msg_type_t accepted_msg_type, const char *filename);
 flog_t * create_flog_output_file(const char *name, flog_msg_type_t accepted_msg_type, const char *filename);
 void destroy_flog_output_file(flog_t *p);
 
 #endif //FLOG_CONFIG_OUTPUT_FILE
+
 
 #endif //FLOG_OUTPUT_FILE_H

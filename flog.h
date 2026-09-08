@@ -32,6 +32,15 @@
 #define _GNU_SOURCE
 
 #include "config.h"
+
+//! Buffering keeps messages past the call that made them, so their strings
+//! have to be owned rather than borrowed -- which is what needs an allocator.
+//! Asking for one without the other is a contradiction rather than a
+//! configuration, so say so here instead of failing somewhere less obvious.
+#if defined(FLOG_CONFIG_MSG_BUFFER) && !defined(FLOG_CONFIG_ALLOCATION)
+#error "FLOG_CONFIG_MSG_BUFFER requires FLOG_CONFIG_ALLOCATION"
+#endif
+
 #include "flog_msg_id.h"
 //! stdio.h is included here for its side effect as much as its contents: it
 //! is what brings in the libc's own identification macros, and the test below
@@ -433,8 +442,18 @@ typedef struct flog_t {
 	flog_msg_t **msg;                       //!< array of messages
 	uint_fast16_t msg_amount;               //!< amount of messages in array
 	uint_fast16_t msg_max;                  //!< maximum amount of buffered messages
-	struct flog_t **sublog;                 //!< array of sublogs
-	uint_fast8_t sublog_amount;             //!< amount of sublogs in array
+	//! Sublogs are an INTRUSIVE LIST rather than an array: a parent holds
+	//! its first child and each child holds its next sibling. The array it
+	//! replaced had to be grown with realloc, which made building a log tree
+	//! the one structural operation that could fail for want of memory --
+	//! in a library whose job is to still work when things are going wrong.
+	//! A list costs one pointer per log, cannot fail, and has no bound.
+	//!
+	//! A log may sit in only one parent, which the array did not enforce
+	//! either. flog_append_sublog() refuses a second parent rather than
+	//! corrupting both lists.
+	struct flog_t *first_sublog;            //!< first child, or NULL
+	struct flog_t *next_sibling;            //!< next child of the same parent
 } flog_t;
 
 

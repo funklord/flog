@@ -22,16 +22,14 @@
 //! @retval 0 success
 int flog_output_stdout(flog_t *log,const flog_msg_t *msg)
 {
-	char *str;
-	if(flog_get_str_message(&str,msg))
+	char str[FLOG_CONFIG_STR_MAX];
+	if(flog_get_str_message(str,sizeof(str),msg)<0)
 		return(-1);
 	if(fputs(str,stdout)==EOF) {
 		log->output_error=errno;
-		free(str);
 		flog_print(log->error_log,NULL,FLOG_ERROR,FLOG_MSG_CANNOT_WRITE_TO_STDOUT,strerror(log->output_error));
 		return(log->output_error);
 	}
-	free(str);
 	return(0);
 }
 
@@ -41,16 +39,14 @@ int flog_output_stdout(flog_t *log,const flog_msg_t *msg)
 //! @retval 0 success
 int flog_output_stderr(flog_t *log,const flog_msg_t *msg)
 {
-	char *str;
-	if(flog_get_str_message(&str,msg))
+	char str[FLOG_CONFIG_STR_MAX];
+	if(flog_get_str_message(str,sizeof(str),msg)<0)
 		return(-1);
 	if(fputs(str,stderr)==EOF) {
 		log->output_error=errno;
-		free(str);
 		flog_print(log->error_log,NULL,FLOG_ERROR,FLOG_MSG_CANNOT_WRITE_TO_STDERR,strerror(log->output_error));
 		return(log->output_error);
 	}
-	free(str);
 	return(0);
 }
 
@@ -58,6 +54,29 @@ int flog_output_stderr(flog_t *log,const flog_msg_t *msg)
 //! create and return a log that writes to stdout
 
 //! @retval NULL error
+//! @brief Point a caller-owned flog_t at stdout
+//!
+//! The caller-owned counterpart of create_flog_output_stdout(): the flog_t
+//! lives wherever the caller put it and the name is BORROWED rather than
+//! copied, so it must outlive the log. There is nothing to destroy.
+void init_flog_output_stdout(flog_t *p, const char *name, flog_msg_type_t accepted_msg_type)
+{
+	init_flog_t(p);
+	p->name=(char *)name;
+	p->accepted_msg_type=accepted_msg_type;
+	p->output_func=flog_output_stdout;
+}
+
+//! @brief Point a caller-owned flog_t at stderr
+//! @see init_flog_output_stdout()
+void init_flog_output_stderr(flog_t *p, const char *name, flog_msg_type_t accepted_msg_type)
+{
+	init_flog_t(p);
+	p->name=(char *)name;
+	p->accepted_msg_type=accepted_msg_type;
+	p->output_func=flog_output_stderr;
+}
+
 flog_t * create_flog_output_stdout(const char *name, flog_msg_type_t accepted_msg_type)
 {
 	flog_t *p;
@@ -82,3 +101,4 @@ flog_t * create_flog_output_stderr(const char *name, flog_msg_type_t accepted_ms
 
 
 #endif //FLOG_CONFIG_OUTPUT_STDIO
+

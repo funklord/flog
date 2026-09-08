@@ -27,9 +27,12 @@
 int flog_output_stdout(flog_t *log,const flog_msg_t *msg);
 int flog_output_stderr(flog_t *log,const flog_msg_t *msg);
 
+void init_flog_output_stdout(flog_t *p, const char *name, flog_msg_type_t accepted_msg_type);
+void init_flog_output_stderr(flog_t *p, const char *name, flog_msg_type_t accepted_msg_type);
 flog_t * create_flog_output_stdout(const char *name, flog_msg_type_t accepted_msg_type);
 flog_t * create_flog_output_stderr(const char *name, flog_msg_type_t accepted_msg_type);
 
 #endif //FLOG_CONFIG_OUTPUT_STDIO
+
 
 #endif //FLOG_OUTPUT_STDIO_H

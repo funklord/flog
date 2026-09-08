@@ -111,6 +111,11 @@ void init_flog_msg_t(flog_msg_t *p)
 
 //! create and return a flog_msg_t type
 
+#ifdef FLOG_CONFIG_ALLOCATION
+//! Present only when FLOG_CONFIG_ALLOCATION is set. Without it the
+//! caller-owned pair init_flog_msg_t()/init_flog_t() is the whole story:
+//! a flog_t or flog_msg_t lives wherever the caller puts it, and there is
+//! nothing to destroy.
 //! internal use only, or when creating flog output function
 //! @retval NULL error
 flog_msg_t * create_flog_msg_t(const char *subsystem,
@@ -185,6 +190,8 @@ void destroy_flog_msg_t(flog_msg_t *p)
 //! initialise a flog_t to defaults
 
 //! mainly internal use, or when extending flog
+#endif //FLOG_CONFIG_ALLOCATION
+
 void init_flog_t(flog_t *p)
 {
 	memset(p,0,sizeof(flog_t));
@@ -198,17 +205,34 @@ void init_flog_t(flog_t *p)
 	//p->msg=NULL;
 	//p->msg_amount=0;
 	//p->msg_max=0;
-	//p->sublog=NULL;
-	//p->sublog_amount=0;
+	//p->first_sublog=NULL;
+	//p->next_sibling=NULL;
 }
 
 
 //! create and return a flog_t type
 
+//! Storage for create_flog_t() when there is no allocator.
+//!
+//! A POOL RATHER THAN A SECOND API. create_flog_t() and destroy_flog_t()
+//! keep their signatures and their meaning in both configurations, so a
+//! consumer writes one program that builds either way. Gating them away and
+//! offering init_flog_t() instead would have made every caller pick a style
+//! from a compile-time option, which is no uniform logging at all.
+//!
+//! Exhaustion returns NULL, which is what malloc failure already did.
+#ifndef FLOG_CONFIG_ALLOCATION
+static flog_t flog_pool[FLOG_CONFIG_MAX_LOGS];
+static char flog_pool_name[FLOG_CONFIG_MAX_LOGS][FLOG_CONFIG_NAME_MAX];
+static uint_fast8_t flog_pool_used[FLOG_CONFIG_MAX_LOGS];
+#endif //FLOG_CONFIG_ALLOCATION
+
+
 //! @retval NULL error
 flog_t * create_flog_t(const char *name, flog_msg_type_t accepted_msg_type)
 {
 	flog_t *p;
+#ifdef FLOG_CONFIG_ALLOCATION
 	if((p=malloc(sizeof(flog_t)))!=NULL) {
 		init_flog_t(p);
 		p->accepted_msg_type=accepted_msg_type;
@@ -220,24 +244,58 @@ flog_t * create_flog_t(const char *name, flog_msg_type_t accepted_msg_type)
 		}
 	}
 	return(p);
+#else
+	uint_fast8_t i;
+	for(i=0;i<FLOG_CONFIG_MAX_LOGS;i++) {
+		if(!flog_pool_used[i]) {
+			flog_pool_used[i]=1;
+			p=&flog_pool[i];
+			init_flog_t(p);
+			p->accepted_msg_type=accepted_msg_type;
+			if(name && name[0]) {
+				//! Copied into the slot's own storage, not borrowed, so the
+				//! name outlives the caller's exactly as strdup made it.
+				snprintf(flog_pool_name[i],FLOG_CONFIG_NAME_MAX,"%s",name);
+				p->name=flog_pool_name[i];
+			}
+			return(p);
+		}
+	}
+	return(NULL);
+#endif //FLOG_CONFIG_ALLOCATION
 }
 
 
 //! free a flog_t
 void destroy_flog_t(flog_t *p)
 {
-	if(p) {
-		free(p->name);
-		if(p->msg) {
-			uint_fast16_t i;
-			for(i=0;i<p->msg_amount;i++)
-				destroy_flog_msg_t(p->msg[i]);
-			free(p->msg);
-		}
-		free(p->sublog); //! Note that sublogs are not freed
-		free(p);
-		p=NULL;
+	if(!p)
+		return;
+#ifdef FLOG_CONFIG_ALLOCATION
+	free(p->name);
+#ifdef FLOG_CONFIG_MSG_BUFFER
+	if(p->msg) {
+		uint_fast16_t i;
+		for(i=0;i<p->msg_amount;i++)
+			destroy_flog_msg_t(p->msg[i]);
+		free(p->msg);
 	}
+#endif //FLOG_CONFIG_MSG_BUFFER
+	//! Note that sublogs are not freed, and there is no longer an array to
+	//! free either -- the list lives in the sublogs themselves.
+	free(p);
+#else
+	//! Return the slot. Nothing is freed because nothing was allocated, and
+	//! the call means the same thing to a caller either way: this log is
+	//! finished with. Sublogs are not touched, as above.
+	uint_fast8_t i;
+	for(i=0;i<FLOG_CONFIG_MAX_LOGS;i++) {
+		if(p==&flog_pool[i]) {
+			flog_pool_used[i]=0;
+			return;
+		}
+	}
+#endif //FLOG_CONFIG_ALLOCATION
 }
 
 
@@ -263,12 +321,35 @@ int flog_add_msg(flog_t *p,flog_msg_t *msg)
 	outmsg=*msg;
 
 	//append name to subsystem
+	//! The log's name is prefixed to the message's subsystem, so a message
+	//! passing up a sublog tree accumulates the path it came by.
+	//!
+	//! Without allocation this composes into a fixed buffer that lives for
+	//! the length of this call, which is all the borrowed string needs: the
+	//! output function is called below and is done with it before returning.
+	//! With allocation it was asprintf, and the failure branch carried
+	//! "We don't care if we can't allocate memory" -- meaning a log under
+	//! memory pressure silently dropped its own name from the record. A
+	//! fixed buffer cannot fail, so that case stops existing rather than
+	//! being tolerated.
+#ifdef FLOG_CONFIG_ALLOCATION
 	char *appended_subsystem=NULL;
+#define FLOG_SUBSYSTEM_RELEASE() free(appended_subsystem)
+#else
+	char appended_subsystem[FLOG_CONFIG_TEXT_MAX];
+	appended_subsystem[0]='\0';
+#define FLOG_SUBSYSTEM_RELEASE() (void)(0)
+#endif
 	if(p->name) {
 		if(outmsg.subsystem) {
-			if(asprintf(&appended_subsystem,"%s/%s",p->name,outmsg.subsystem)!=-1) { //We don't care if we can't allocate memory
+#ifdef FLOG_CONFIG_ALLOCATION
+			if(asprintf(&appended_subsystem,"%s/%s",p->name,outmsg.subsystem)!=-1) {
 				outmsg.subsystem = appended_subsystem;
 			}
+#else
+			snprintf(appended_subsystem,sizeof(appended_subsystem),"%s/%s",p->name,outmsg.subsystem);
+			outmsg.subsystem = appended_subsystem;
+#endif
 		} else {
 			outmsg.subsystem=p->name;
 		}
@@ -301,21 +382,22 @@ int flog_add_msg(flog_t *p,flog_msg_t *msg)
 		stack_depth++;
 #endif
 		//add message to sublogs
-		uint_fast8_t i;
-		for(i=0;i<p->sublog_amount;i++)
-			e+=flog_add_msg(p->sublog[i],&outmsg);
+				for(flog_t *sub=p->first_sublog;sub;sub=sub->next_sibling)
+			e+=flog_add_msg(sub,&outmsg);
 #ifdef FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH
 		stack_depth--;
 	}
 #endif
 
 	//if we allocated a string, free it
-	free(appended_subsystem);
+	FLOG_SUBSYSTEM_RELEASE();
+#undef FLOG_SUBSYSTEM_RELEASE
 
 	return(e);
 }
 
 
+#ifdef FLOG_CONFIG_MSG_BUFFER
 //! clear all messages stored in log
 void flog_clear_msg_buffer(flog_t *p)
 {
@@ -328,6 +410,7 @@ void flog_clear_msg_buffer(flog_t *p)
 		p->msg_amount=0;
 	}
 }
+#endif //FLOG_CONFIG_MSG_BUFFER
 
 
 //! add a sublog to a log
@@ -343,12 +426,21 @@ int flog_append_sublog(flog_t *p,flog_t *sublog)
 		flog_print(p->error_log,NULL,FLOG_ERROR,0,"cannot append log to itself (causes circular dependency)");
 		return(1);
 	}
-	flog_t **new_sublog;
-	if((new_sublog=realloc(p->sublog,(p->sublog_amount+1)*sizeof(flog_t *)))==NULL)
+	//! Refused if it already has a parent: one log in two lists would make
+	//! next_sibling mean two different things and silently truncate one of
+	//! them. The array could not detect this and so allowed it.
+	if(sublog->next_sibling)
 		return(1);
-	p->sublog=new_sublog;
-	p->sublog[p->sublog_amount]=sublog;
-	p->sublog_amount++;
+	//! Appended at the tail, so messages reach sublogs in the order they
+	//! were added, which is what the array did.
+	if(!p->first_sublog) {
+		p->first_sublog=sublog;
+	} else {
+		flog_t *last=p->first_sublog;
+		while(last->next_sibling)
+			last=last->next_sibling;
+		last->next_sibling=sublog;
+	}
 	return(0);
 }
 
@@ -373,9 +465,8 @@ int flog_is_message_used(flog_t *p,flog_msg_type_t type)
 		if(stack_depth+1 < FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH) {
 			stack_depth++;
 #endif
-			uint_fast8_t i;
-			for(i=0;i<p->sublog_amount;i++) {
-				if(flog_is_message_used(p->sublog[i],type)) {
+						for(flog_t *sub=p->first_sublog;sub;sub=sub->next_sibling) {
+				if(flog_is_message_used(sub,type)) {
 #ifdef FLOG_CONFIG_RECURSIVE_MAX_STACK_DEPTH
 					stack_depth--;
 #endif
@@ -485,29 +576,53 @@ int _flog_printf(flog_t *p,const char *subsystem,
 		return(0);
 
 	//Parse format string
+#ifdef FLOG_CONFIG_ALLOCATION
 	char *text;
 	va_list ap;
 	va_start(ap,textf);
 	if(vasprintf(&text,textf,ap)==-1)
 		return(1);
 	va_end(ap);
+#define FLOG_TEXT_RELEASE() free(text)
+#else
+	//! Fixed buffer, truncating: see FLOG_CONFIG_TEXT_MAX. vsnprintf always
+	//! terminates within the size it is given, so a truncated message is
+	//! still a valid string and still gets logged -- losing the tail of one
+	//! line is a far better failure than losing the line.
+	char text[FLOG_CONFIG_TEXT_MAX];
+	va_list ap;
+	va_start(ap,textf);
+	vsnprintf(text,sizeof(text),textf,ap);
+	va_end(ap);
+#define FLOG_TEXT_RELEASE() (void)(0)
+#endif //FLOG_CONFIG_ALLOCATION
 
 	//Convert the input into a flog_msg_t struct
 	flog_msg_t msg;
 	init_flog_msg_t(&msg);
 	msg.msg_id = msg_id;
+#ifdef FLOG_CONFIG_ALLOCATION
 	if(text && text[0])
+#else
+	//! An array rather than a pointer here, so testing it against NULL is
+	//! both meaningless and a warning. Only its emptiness is a real question.
+	if(text[0])
+#endif
 		msg.text = text;
 #ifndef FLOG_CONFIG_ALLOW_NULL_MESSAGES
-	if(!msg.msg_id && !msg.text)
+	if(!msg.msg_id && !msg.text) {
+		FLOG_TEXT_RELEASE();
 		return(1);
+	}
 #endif //FLOG_CONFIG_ALLOW_NULL_MESSAGES
 	if(subsystem && subsystem[0])
 		msg.subsystem = subsystem;
 #ifdef FLOG_CONFIG_TIMESTAMP
 #ifdef FLOG_CONFIG_TIMESTAMP_USEC
-	if(gettimeofday(&msg.timestamp,NULL))
+	if(gettimeofday(&msg.timestamp,NULL)) {
+		FLOG_TEXT_RELEASE();
 		return(1);
+	}
 #else //FLOG_CONFIG_TIMESTAMP_USEC
 	msg.timestamp = time(NULL);
 #endif //FLOG_CONFIG_TIMESTAMP_USEC
@@ -523,12 +638,13 @@ int _flog_printf(flog_t *p,const char *subsystem,
 
 	//Add message to log
 	if(flog_add_msg(p,&msg)) {
-		free(text);
+		FLOG_TEXT_RELEASE();
 		return(1);
 	}
-	free(text);
+	FLOG_TEXT_RELEASE();
 	return(0);
 }
+#undef FLOG_TEXT_RELEASE
 
 
 #ifdef DEBUG
