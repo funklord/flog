@@ -29,7 +29,13 @@
 //! Asking for extensions costs nothing where they do not exist. What is
 //! selectable is whether flog USES the platform's asprintf and strdup, which
 //! is decided below, after a header has been read.
+//! Guarded because a C++ compiler predefines it, so redefining it here warns
+//! at every C++ consumer that includes this header -- another diagnostic a
+//! consumer cannot do anything about from outside. Where it is already
+//! defined the request has already been made and there is nothing to add.
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 
 #include "config.h"
 
@@ -262,7 +268,18 @@ typedef uint_fast8_t flog_msg_type_t;
 
 
 // Macros to insert source info into print strings
-// Maybe it is better to use __func__ than __FUNCTION__ ?
+//! __func__ rather than __func__, which answers the question this
+//! comment used to ask. __func__ is a GNU extension and __func__ is the
+//! C99 and C11 spelling (and C++11's), so the two are identical in what they
+//! produce and differ only in what a strict compiler says about them.
+//!
+//! IT IS THE CONSUMER WHO PAYS, which is why it matters in a header rather
+//! than being a style preference. These are macros, so the identifier is
+//! expanded at the CALL SITE and merely reported against this file: a
+//! consumer building with -Wpedantic gets a warning it cannot suppress by
+//! wrapping the #include, because the expansion happens outside anything
+//! wrapped around it. Reported by fuzznet, who compile at -std=c11
+//! -Wpedantic and had tried exactly that suppression.
 
 
 //! emit an flog message
@@ -279,7 +296,7 @@ typedef uint_fast8_t flog_msg_type_t;
 //! @retval 3 did not add null message (flog is configured not to allow null messages)
 //! @see _flog_print(), flog_printf(), flog_dprint()
 #ifdef FLOG_CONFIG_SRC_INFO
-#define flog_print(p, subsystem, type, msg_id, text) _flog_print(p,subsystem,__FILE__,__LINE__,__FUNCTION__,type,msg_id,text)
+#define flog_print(p, subsystem, type, msg_id, text) _flog_print(p,subsystem,__FILE__,__LINE__,__func__,type,msg_id,text)
 #else
 #define flog_print(p, subsystem, type, msg_id, text) _flog_print(p,subsystem,type,msg_id,text)
 #endif
@@ -299,7 +316,7 @@ typedef uint_fast8_t flog_msg_type_t;
 //! @retval 3 did not add null message (flog is configured not to allow null messages)
 //! @see _flog_printf(), flog_print(), flog_dprintf()
 #ifdef FLOG_CONFIG_SRC_INFO
-#define flog_printf(p, subsystem, type, msg_id, ...) _flog_printf(p,subsystem,__FILE__,__LINE__,__FUNCTION__,type,msg_id,__VA_ARGS__)
+#define flog_printf(p, subsystem, type, msg_id, ...) _flog_printf(p,subsystem,__FILE__,__LINE__,__func__,type,msg_id,__VA_ARGS__)
 #else
 #define flog_printf(p, subsystem, type, msg_id, ...) _flog_printf(p,subsystem,type,msg_id,__VA_ARGS__)
 #endif
@@ -314,13 +331,13 @@ typedef uint_fast8_t flog_msg_type_t;
 //! Macro to signify function start
 
 //! Use this macro for deep debugging of program flow
-#define flog_function_start(p, subsystem) flog_printf(p,subsystem,FLOG_DEEP_DEBUG,FLOG_MSG_FUNCTION_START,"%s()",__FUNCTION__)
+#define flog_function_start(p, subsystem) flog_printf(p,subsystem,FLOG_DEEP_DEBUG,FLOG_MSG_FUNCTION_START,"%s()",__func__)
 
 
 //! Macro to signify function end
 
 //! Use this macro for deep debugging of program flow
-#define flog_function_end(p, subsystem) flog_printf(p,subsystem,FLOG_DEEP_DEBUG,FLOG_MSG_FUNCTION_END,"%s()",__FUNCTION__)
+#define flog_function_end(p, subsystem) flog_printf(p,subsystem,FLOG_DEEP_DEBUG,FLOG_MSG_FUNCTION_END,"%s()",__func__)
 
 
 //! Macro for flog assert functionality
@@ -405,7 +422,7 @@ typedef uint_fast8_t flog_msg_type_t;
 //! The string fields are `const` because most producers of a flog_msg_t
 //! (_flog_print(), _flog_printf(), flog_add_msg()'s propagation to
 //! sublogs) borrow pointers they do not own (string literals, __FILE__/
-//! __FUNCTION__, a caller's buffer) rather than copying them -- only
+//! __func__, a caller's buffer) rather than copying them -- only
 //! create_flog_msg_t()/destroy_flog_msg_t() form an owning pair (via
 //! strdup()/free()), and destroy_flog_msg_t() casts the const away
 //! explicitly at that one legitimate free site. Do not free these fields
