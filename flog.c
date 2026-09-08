@@ -6,7 +6,9 @@
 //! Useful as the main logger of a program or embedded system.
 //! Requires C99 + GNU support.
 
+#if !defined(FLOG_NO_ASPRINTF) || !defined(FLOG_NO_STRDUP)
 #define _GNU_SOURCE
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -69,6 +71,23 @@ int asprintf(char **strp, const char *fmt, ...)
 }
 
 #endif //FLOG_HAVE_ASPRINTF
+
+#ifndef FLOG_HAVE_STRDUP
+
+//! @brief strdup() for platforms without one
+//! @param[in] *s string to copy
+//! @retval NULL allocation failed
+char *strdup(const char *s)
+{
+	size_t len=strlen(s)+1;
+	char *p=malloc(len);
+	if(p==NULL)
+		return(NULL);
+	memcpy(p,s,len);
+	return(p);
+}
+
+#endif //FLOG_HAVE_STRDUP
 
 
 //! initialise a flog_msg_t to defaults

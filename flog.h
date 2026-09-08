@@ -11,8 +11,17 @@
 #define FLOG_H
 
 //! asprintf() is a GNU extension, so ask for it before any system header is
-//! pulled in. Harmless where it means nothing.
+//! pulled in -- it has to be requested before the test below can find out
+//! whether the platform has it, since that test needs a libc header read
+//! first.
+//!
+//! Not asked for at all when FLOG_NO_ASPRINTF says the fallback is wanted.
+//! Defining _GNU_SOURCE is harmless where it means nothing, but a target
+//! deliberately built to strict C99 should not have flog quietly asking its
+//! libc for extensions it has been told not to use.
+#if !defined(FLOG_NO_ASPRINTF) || !defined(FLOG_NO_STRDUP)
 #define _GNU_SOURCE
+#endif
 
 #include "config.h"
 #include "flog_msg_id.h"
@@ -39,12 +48,40 @@
 //! settle it by hand where the detection is wrong. Getting it wrong in the
 //! quiet direction costs nothing but flog's own implementation being used on
 //! a platform that had one.
-#if !defined(FLOG_HAVE_ASPRINTF) && !defined(FLOG_NO_ASPRINTF)
+//! @def FLOG_HOSTED_LIBC
+//! A libc known to carry both asprintf() and strdup().
+//!
+//! One list for both because it is one question in practice: these are the
+//! hosted platforms flog is built on, and every one of them has had both for
+//! years. Splitting the detection would suggest a platform exists with one
+//! and not the other, which would be a distinction invented for tidiness.
 #if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || \
     defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__) || \
-    defined(__BIONIC__) || defined(__CYGWIN__) || \
+    defined(__BIONIC__) || defined(__CYGWIN__)
+#define FLOG_HOSTED_LIBC
+#endif
+
+#if !defined(FLOG_HAVE_ASPRINTF) && !defined(FLOG_NO_ASPRINTF)
+#if defined(FLOG_HOSTED_LIBC) || \
     (defined(_POSIX_VERSION) && _POSIX_VERSION >= 202405L)
 #define FLOG_HAVE_ASPRINTF
+#endif
+#endif
+
+//! @def FLOG_HAVE_STRDUP
+//! Whether the platform supplies strdup().
+//!
+//! FOUND BY BUILDING THE FALLBACK PATH RATHER THAN BY READING. flog uses
+//! strdup() 21 times, and strdup is POSIX.1-2001 and C23 -- not C99. So
+//! switching asprintf to the fallback and compiling with -std=c99 did not
+//! produce a strict-C99 build, it produced a build that failed on strdup.
+//! A switch that does not work in the case it exists for is worse than no
+//! switch, which is why this is here rather than left to the porter.
+#if !defined(FLOG_HAVE_STRDUP) && !defined(FLOG_NO_STRDUP)
+#if defined(FLOG_HOSTED_LIBC) || \
+    (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200809L) || \
+    (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 202311L)
+#define FLOG_HAVE_STRDUP
 #endif
 #endif
 
@@ -56,6 +93,12 @@
 int asprintf(char **strp, const char *fmt, ...);
 int vasprintf(char **strp, const char *fmt, va_list ap);
 #endif //FLOG_HAVE_ASPRINTF
+
+#ifndef FLOG_HAVE_STRDUP
+//! Supplied by flog where the platform has none. Same contract as POSIX
+//! strdup(): a newly allocated copy of s, or NULL if it cannot be made.
+char *strdup(const char *s);
+#endif //FLOG_HAVE_STRDUP
 
 #ifdef FLOG_CONFIG_TIMESTAMP
 #ifdef FLOG_CONFIG_TIMESTAMP_USEC

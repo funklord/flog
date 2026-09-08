@@ -10,7 +10,9 @@
 
 #ifdef FLOG_CONFIG_STRING_OUTPUT
 
+#if !defined(FLOG_NO_ASPRINTF) || !defined(FLOG_NO_STRDUP)
 #define _GNU_SOURCE
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
