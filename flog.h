@@ -10,18 +10,26 @@
 #ifndef FLOG_H
 #define FLOG_H
 
-//! asprintf() is a GNU extension, so ask for it before any system header is
-//! pulled in -- it has to be requested before the test below can find out
-//! whether the platform has it, since that test needs a libc header read
-//! first.
+//! Ask the libc for everything it has, before any system header is pulled in.
 //!
-//! Not asked for at all when FLOG_NO_ASPRINTF says the fallback is wanted.
-//! Defining _GNU_SOURCE is harmless where it means nothing, but a target
-//! deliberately built to strict C99 should not have flog quietly asking its
-//! libc for extensions it has been told not to use.
-#if !defined(FLOG_NO_ASPRINTF) || !defined(FLOG_NO_STRDUP)
+//! UNCONDITIONAL AND FIRST, and neither is negotiable. A feature-test macro
+//! only works if it is set before the headers it affects are read, so it
+//! cannot be decided by a test that needs those headers to have been read
+//! already -- the request has to come first and the finding out comes after.
+//!
+//! It was briefly made conditional on the fallbacks not being wanted, on the
+//! reasoning that a strict-C99 target should not be asking for extensions.
+//! That is wrong twice. It gates far more than the two functions below --
+//! every GNU feature this file or a later one might use disappears with it,
+//! silently and at a distance from anything that mentions asprintf. And a
+//! consumer that includes a libc header before this one gets no _GNU_SOURCE
+//! effect at all, so the macro has to be as early and as unconditional as it
+//! can be to work even that well.
+//!
+//! Asking for extensions costs nothing where they do not exist. What is
+//! selectable is whether flog USES the platform's asprintf and strdup, which
+//! is decided below, after a header has been read.
 #define _GNU_SOURCE
-#endif
 
 #include "config.h"
 #include "flog_msg_id.h"

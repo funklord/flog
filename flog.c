@@ -6,9 +6,7 @@
 //! Useful as the main logger of a program or embedded system.
 //! Requires C99 + GNU support.
 
-#if !defined(FLOG_NO_ASPRINTF) || !defined(FLOG_NO_STRDUP)
 #define _GNU_SOURCE
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
